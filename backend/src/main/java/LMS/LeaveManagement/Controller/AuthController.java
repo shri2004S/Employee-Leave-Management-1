@@ -1,7 +1,7 @@
-
 package LMS.LeaveManagement.Controller;
 
 import LMS.LeaveManagement.dto.AuthResponse;
+import LMS.LeaveManagement.dto.ForgotPasswordRequest;
 import LMS.LeaveManagement.dto.LoginRequest;
 import LMS.LeaveManagement.dto.RegisterRequest;
 import LMS.LeaveManagement.service.AuthService;
@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,5 +36,12 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        return ResponseEntity.ok(authService.resetPassword(request));
     }
 }

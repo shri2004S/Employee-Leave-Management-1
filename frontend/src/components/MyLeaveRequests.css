@@ -362,3 +362,105 @@
 .leaves-empty span {
   font-size: 2rem;
 }
+
+/* ========================================================
+   Responsive Media Queries for My Leave Requests
+   ======================================================== */
+@media (max-width: 768px) {
+  .my-leaves {
+    padding: 24px 18px;
+    margin-top: 24px;
+    border-radius: 12px;
+  }
+
+  .my-leaves-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .refresh-leaves {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .leaves-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .filter-item {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-item select {
+    flex: 1;
+    max-width: 65%;
+  }
+
+  .leaves-table th,
+  .leaves-table td {
+    padding: 10px 12px;
+    font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .my-leaves {
+    padding: 18px 12px;
+  }
+
+  .my-leaves-heading h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    padding: 14px 18px;
+  }
+
+  .modal-body {
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .modal-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modal-footer {
+    padding: 12px 18px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .modal-cancel-btn,
+  .modal-save-btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .row-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .edit-action-btn,
+  .cancel-action-btn {
+    width: 100%;
+    text-align: center;
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+}

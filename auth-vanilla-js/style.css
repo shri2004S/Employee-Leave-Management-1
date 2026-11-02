@@ -1,0 +1,391 @@
+/* ========================================================
+   Theme: Clean Blue & White Modern Layout
+   Used by: register.html, login.html, dashboard.html
+   ======================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #f0f4f9;
+  color: #1e293b;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Centered Form Card */
+.auth-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.08);
+  padding: 36px 32px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Brand & Headers */
+.auth-header {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.auth-header .logo-badge {
+  display: inline-block;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.3rem;
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.auth-header h2 {
+  font-size: 1.6rem;
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.auth-header p {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  padding: 11px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  background: #f8fafc;
+}
+
+.form-group input:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Error message display */
+.error-msg {
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 5px;
+  min-height: 16px;
+}
+
+/* Global Alert Banners */
+.alert-box {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+  display: none;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+/* Primary Button */
+.btn-primary {
+  width: 100%;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  margin-top: 8px;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-primary:active {
+  transform: scale(0.99);
+}
+
+/* Switch Links */
+.auth-footer {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.auth-footer a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ========================================================
+   Dashboard Styling
+   ======================================================== */
+.dashboard-wrapper {
+  width: 100%;
+  max-width: 800px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.dashboard-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 32px;
+  background: #1e3a8a;
+  color: #ffffff;
+}
+
+.dashboard-nav .brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-nav .logout-btn {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dashboard-nav .logout-btn:hover {
+  background: #dc2626;
+}
+
+.dashboard-content {
+  padding: 40px 32px;
+}
+
+.user-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.user-card h3 {
+  font-size: 1.3rem;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.user-card p {
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.status-badge {
+  display: inline-block;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-top: 12px;
+}
+
+
+/* ========================================================
+   Responsive Media Queries for Vanilla JS Auth & Dashboard
+   ======================================================== */
+@media (max-width: 600px) {
+  body {
+    padding: 12px;
+  }
+
+  .auth-container {
+    padding: 24px 18px;
+    border-radius: 12px;
+  }
+
+  .auth-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .dashboard-wrapper {
+    border-radius: 12px;
+  }
+
+  .dashboard-nav {
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+    padding: 16px 20px;
+    text-align: center;
+  }
+
+  .dashboard-nav .brand-title {
+    justify-content: center;
+  }
+
+  .dashboard-nav .logout-btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .dashboard-content {
+    padding: 24px 18px;
+  }
+
+  .user-card {
+    padding: 18px;
+  }
+
+  .user-card h3 {
+    font-size: 1.15rem;
+  }
+}
+
+
+/* ========================================================
+   Interactive JavaScript Popup Modal Styles
+   ======================================================== */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.popup-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.popup-box {
+  background: #ffffff;
+  padding: 34px 28px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: scale(0.85);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid #e2e8f0;
+}
+
+.popup-overlay.active .popup-box {
+  transform: scale(1);
+}
+
+.popup-icon-circle {
+  width: 64px;
+  height: 64px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+}
+
+.popup-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.popup-message {
+  font-size: 0.94rem;
+  color: #64748b;
+  margin-bottom: 24px;
+  line-height: 1.55;
+}
+
+.popup-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 13px 20px;
+  border-radius: 9px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.popup-btn:hover {
+  background: #1d4ed8;
+}
+
+.popup-btn:active {
+  transform: scale(0.98);
+}

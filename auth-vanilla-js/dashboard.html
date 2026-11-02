@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Dashboard - LeaveEase</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- =======================================================================
+       CRITICAL ROUTE PROTECTION SCRIPT (Runs immediately before page renders)
+       Prevents direct URL access!
+       ======================================================================= -->
+  <script>
+    // Check if the user is authenticated
+    const currentUser = localStorage.getItem("loggedInUser");
+
+    // If 'loggedInUser' is NOT found in localStorage:
+    if (!currentUser) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    
+    <!-- Top Navigation Bar -->
+    <header class="dashboard-nav">
+      <div class="brand-title">
+        <span>🏢</span> LeaveEase Portal
+      </div>
+      <button class="logout-btn" id="logoutBtn">
+        Logout ➔
+      </button>
+    </header>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-content">
+      <div class="user-card">
+        <h3 id="welcomeMessage">Welcome!</h3>
+        <p>Email: <strong id="userEmailDisplay">Loading...</strong></p>
+        <span class="status-badge">● Session Active</span>
+      </div>
+
+      <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; color: #64748b;">
+        <h4 style="color: #0f172a; margin-bottom: 8px;">Authentication Successful</h4>
+        <p>You have successfully logged in. Direct access to this dashboard without logging in is blocked.</p>
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    // =========================================================================
+    // Dashboard Data Display & Logout Logic
+    // =========================================================================
+
+    // 1. Parse authenticated user data from localStorage
+    const loggedInUserData = JSON.parse(localStorage.getItem("loggedInUser"));
+
+    // 2. Populate user profile details on the dashboard
+    if (loggedInUserData) {
+      document.getElementById("welcomeMessage").textContent = `Welcome, ${loggedInUserData.name}!`;
+      document.getElementById("userEmailDisplay").textContent = loggedInUserData.email;
+    }
+
+    // 3. Logout Event Listener
+    const logoutBtn = document.getElementById("logoutBtn");
+    
+    logoutBtn.addEventListener("click", function() {
+      const confirmLogout = window.confirm("Are you sure you want to log out?");
+      
+      if (confirmLogout) {
+        // Remove the session from localStorage
+        localStorage.removeItem("loggedInUser");
+
+        // Redirect back to login.html
+        alert("Logged out successfully");
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+
+</body>
+</html>
+
