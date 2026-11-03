@@ -112,4 +112,20 @@ public class AuthService {
 
         return Map.of("message", "Password reset successfully. Please login with your new password.");
     }
+
+    @Transactional(readOnly = true)
+public Map<String, Object> getCurrentUser(String email) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User not found"));
+
+    return Map.of(
+            "userId", user.getId(),
+            "name", user.getName(),
+            "email", user.getEmail(),
+            "role", user.getRole()
+    );
+}
 }

@@ -61,18 +61,13 @@ function ApplyLeave({ onLeaveSubmitted }) {
 
     try {
       const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          leaveType,
-          fromDate,
-          toDate,
-          reason: reason.trim(),
-        }),
-      });
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(leaveData),
+});
 
       const data = await response.json().catch(() => ({}));
 

@@ -22,8 +22,14 @@ ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
 -- -------------------------------------------------------
 -- 2. Insert Sample Leave Requests
+-- Dynamically matches John Doe's user_id to prevent foreign key errors
 -- -------------------------------------------------------
-INSERT INTO `leave_requests` (`user_id`, `leave_type`, `from_date`, `to_date`, `reason`, `status`) VALUES
-(15, 'CASUAL', '2026-11-10', '2026-11-12', 'Attending family wedding ceremony', 'PENDING'),
-(15, 'SICK', '2026-10-15', '2026-10-16', 'Severe fever and doctor consultation', 'APPROVED'),
-(15, 'EARNED', '2026-09-01', '2026-09-05', 'Annual personal vacation', 'REJECTED');
+INSERT INTO `leave_requests` (`user_id`, `leave_type`, `from_date`, `to_date`, `reason`, `status`)
+SELECT `id`, 'CASUAL', '2026-11-10', '2026-11-12', 'Attending family wedding ceremony', 'PENDING'
+FROM `users` WHERE `email` = 'john@settribe.com'
+UNION ALL
+SELECT `id`, 'SICK', '2026-10-15', '2026-10-16', 'Severe fever and doctor consultation', 'APPROVED'
+FROM `users` WHERE `email` = 'john@settribe.com'
+UNION ALL
+SELECT `id`, 'EARNED', '2026-09-01', '2026-09-05', 'Annual personal vacation', 'REJECTED'
+FROM `users` WHERE `email` = 'john@settribe.com';

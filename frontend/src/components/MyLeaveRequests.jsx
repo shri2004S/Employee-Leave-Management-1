@@ -33,19 +33,9 @@ function MyLeaveRequests({ refreshTrigger }) {
     setLoading(true);
     setError("");
 
-    const token = localStorage.getItem("leaveToken");
-
-    if (!token) {
-      setError("Please log in to view your leave requests.");
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await fetch(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -104,8 +94,8 @@ function MyLeaveRequests({ refreshTrigger }) {
       return;
     }
 
-    const token = localStorage.getItem("leaveToken");
     setEditLoading(true);
+    const token = localStorage.getItem("leaveToken");
 
     try {
       const response = await fetch(`${API_URL}/${editingLeave.id}`, {

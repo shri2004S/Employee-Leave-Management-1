@@ -12,6 +12,16 @@ import "./App.css";
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 const NAME_REGEX = /^[A-Za-z\s.'-]+$/;
 
+const response = await fetch(`${API_URL}/${endpoint}`, {
+  method: "POST",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(body),
+});
+
+
 const LIMITS = {
   NAME_MIN: 3,
   NAME_MAX: 100,
@@ -107,10 +117,7 @@ const EMPTY_FORM = { name: "", email: "", password: "", confirmPassword: "" };
 function loadSavedUser() {
   try {
     const saved = localStorage.getItem("leaveUser");
-    const token = localStorage.getItem("leaveToken");
-    if (!saved || !token) return null;
-    const parsed = JSON.parse(saved);
-    return parsed && typeof parsed === "object" ? parsed : null;
+    return saved ? JSON.parse(saved) : null;
   } catch {
     localStorage.removeItem("leaveUser");
     localStorage.removeItem("leaveToken");
@@ -131,6 +138,36 @@ function App() {
   const [activeTab, setActiveTab] = useState("EMPLOYEE"); // "EMPLOYEE" or "ADMIN"
   const [user, setUser] = useState(loadSavedUser);
 
+  useEffect(() => {
+  async function verifySession() {
+    try {
+      const response = await fetch(`${API_URL}/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Session expired");
+      }
+
+      const currentUser = await response.json();
+
+      localStorage.setItem("leaveUser", JSON.stringify(currentUser));
+      setUser(currentUser);
+
+      setActiveTab(
+        currentUser.role === "ADMIN" ? "ADMIN" : "EMPLOYEE"
+      );
+    } catch {
+      localStorage.removeItem("leaveUser");
+      localStorage.removeItem("leaveToken");
+      setUser(null);
+    }
+  }
+
+  verifySession();
+}, []);
+
   // ---------- JavaScript Popup Modal State ----------
   const [popup, setPopup] = useState({
     show: false,
@@ -139,6 +176,8 @@ function App() {
     btnText: "",
     onConfirm: null,
   });
+
+  
 
   // ---------- validation helpers ----------
   function validateField(field, values) {
@@ -322,9 +361,6 @@ function App() {
         return;
       }
 
-      if (!data.token) throw new Error("Invalid server response: token missing.");
-
-      localStorage.setItem("leaveToken", data.token);
       localStorage.setItem("leaveUser", JSON.stringify(data));
 
       // Show "Login Successfully" Popup modal and proceed to Dashboard!
@@ -355,9 +391,18 @@ function App() {
     }
   }
 
-  function logout() {
+  async function logout() {
+  try {
+    await fetch(`${API_URL}/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Logout request failed:", error);
+  } finally {
     localStorage.removeItem("leaveToken");
     localStorage.removeItem("leaveUser");
+
     setUser(null);
     setForm(EMPTY_FORM);
     setErrors({});
@@ -365,6 +410,7 @@ function App() {
     setMessage({ type: "", text: "" });
     setActiveTab("EMPLOYEE");
   }
+}
 
   function handleLeaveSubmitted() {
     setRefreshTrigger((prev) => prev + 1);
