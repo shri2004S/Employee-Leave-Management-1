@@ -59,6 +59,8 @@ public class AuthController {
 
     private Map<String, Object> userResponse(AuthResponse data) {
         return Map.of(
+                "token", data.token() != null ? data.token() : "",
+                "tokenType", "Bearer",
                 "userId", data.userId(),
                 "name", data.name(),
                 "email", data.email(),

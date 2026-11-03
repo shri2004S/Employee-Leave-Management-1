@@ -38,19 +38,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-          .authorizeHttpRequests(auth -> auth
-    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-    .requestMatchers(
-        "/api/auth/register",
-        "/api/auth/login",
-        "/api/auth/logout",
-        "/api/auth/forgot-password",
-        "/error"
-    ).permitAll()
-    .requestMatchers("/api/auth/me").authenticated()
-    .requestMatchers("/api/admin/**").hasRole("ADMIN")
-    .anyRequest().authenticated()
-)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**", "/error").permitAll()
+                .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(
                 jwtAuthFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -59,32 +52,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-   @Bean
-public CorsConfigurationSource corsConfigurationSource() {
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-    CorsConfiguration config = new CorsConfiguration();
+        // Allow any origin pattern (localhost, 127.0.0.1, any port)
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization"));
+        config.setAllowCredentials(true);
 
-    config.setAllowedOrigins(
-            List.of("http://localhost:5173")
-    );
-
-    config.setAllowedMethods(
-            List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
-    );
-
-    config.setAllowedHeaders(
-            List.of("Content-Type", "X-XSRF-TOKEN")
-    );
-
-    config.setAllowCredentials(true);
-
-    UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
-
-    source.registerCorsConfiguration("/**", config);
-
-    return source;
-}
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(

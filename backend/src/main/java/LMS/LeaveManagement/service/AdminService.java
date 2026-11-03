@@ -14,6 +14,7 @@ import LMS.LeaveManagement.entity.LeaveRequest;
 import LMS.LeaveManagement.repository.LeaveRequestRepository;
 
 @Service
+@Transactional
 public class AdminService {
 
     private final LeaveRequestRepository leaveRepository;
@@ -22,15 +23,16 @@ public class AdminService {
         this.leaveRepository = leaveRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getAllLeaves() {
         return leaveRepository.findAll().stream()
             .sorted((a, b) -> b.getId().compareTo(a.getId()))
             .map(leave -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", leave.getId());
-                map.put("employeeId", leave.getUser().getId());
-                map.put("employeeName", leave.getUser().getName());
-                map.put("employeeEmail", leave.getUser().getEmail());
+                map.put("employeeId", leave.getUser() != null ? leave.getUser().getId() : null);
+                map.put("employeeName", leave.getUser() != null ? leave.getUser().getName() : "Unknown");
+                map.put("employeeEmail", leave.getUser() != null ? leave.getUser().getEmail() : "Unknown");
                 map.put("leaveType", leave.getLeaveType());
                 map.put("fromDate", leave.getFromDate());
                 map.put("toDate", leave.getToDate());
@@ -42,7 +44,6 @@ public class AdminService {
             .collect(Collectors.toList());
     }
 
-    @Transactional
     public Map<String, Object> updateLeaveStatus(Long id, String newStatus) {
         if (newStatus == null || 
             (!newStatus.equalsIgnoreCase("APPROVED") && !newStatus.equalsIgnoreCase("REJECTED"))) {
@@ -52,23 +53,15 @@ public class AdminService {
 
         LeaveRequest leave = leaveRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Leave request with ID " + id + " not found"));
-
-        if (!"PENDING".equalsIgnoreCase(leave.getStatus())) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, 
-                "Cannot change status. Leave request is already " + leave.getStatus());
-        }
+                HttpStatus.NOT_FOUND, "Leave request not found with id: " + id));
 
         leave.setStatus(newStatus.toUpperCase());
-        LeaveRequest saved = leaveRepository.save(leave);
+        leaveRepository.save(leave);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Leave request has been " + saved.getStatus().toLowerCase());
-        response.put("id", saved.getId());
-        response.put("status", saved.getStatus());
-        response.put("employeeName", saved.getUser().getName());
+        response.put("message", "Leave request #" + id + " has been " + newStatus.toUpperCase());
+        response.put("id", leave.getId());
+        response.put("status", leave.getStatus());
         return response;
     }
 }
-
