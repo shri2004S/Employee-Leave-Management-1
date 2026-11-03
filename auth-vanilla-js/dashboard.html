@@ -8,13 +8,13 @@
 
   <!-- =======================================================================
        CRITICAL ROUTE PROTECTION SCRIPT (Runs immediately before page renders)
-       Prevents direct URL access!
+       Prevents direct URL access without logging in!
        ======================================================================= -->
   <script>
-    // Check if the user is authenticated
+    // Check if the user is authenticated in localStorage
     const currentUser = localStorage.getItem("loggedInUser");
 
-    // If 'loggedInUser' is NOT found in localStorage:
+    // If 'loggedInUser' does NOT exist, block access & redirect to login.html
     if (!currentUser) {
       alert("Please login first");
       window.location.href = "login.html";
@@ -37,51 +37,408 @@
 
     <!-- Main Dashboard Content -->
     <main class="dashboard-content">
+      
+      <!-- User Profile Summary Card -->
       <div class="user-card">
         <h3 id="welcomeMessage">Welcome!</h3>
         <p>Email: <strong id="userEmailDisplay">Loading...</strong></p>
         <span class="status-badge">● Session Active</span>
       </div>
 
-      <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center; color: #64748b;">
-        <h4 style="color: #0f172a; margin-bottom: 8px;">Authentication Successful</h4>
-        <p>You have successfully logged in. Direct access to this dashboard without logging in is blocked.</p>
-      </div>
-    </main>
+      <!-- =====================================================================
+           LEAVE APPLICATION FORM WITH JAVASCRIPT DATE VALIDATION
+           ===================================================================== -->
+      <section class="card-section">
+        <h3>Apply for Leave</h3>
+        <p class="section-desc">Select your leave dates and submit your application.</p>
 
+        <!-- General Feedback Alert Banner -->
+        <div class="alert-box" id="formAlert"></div>
+
+        <form id="leaveForm" novalidate>
+          
+          <!-- Leave Type Selection -->
+          <div class="form-group">
+            <label for="leaveType">Leave Type</label>
+            <select id="leaveType" style="padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; outline: none;">
+              <option value="Casual Leave">Casual Leave</option>
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Earned Leave">Earned Leave</option>
+              <option value="Emergency Leave">Emergency Leave</option>
+            </select>
+          </div>
+
+          <!-- 2-Column Responsive Date Input Grid -->
+          <div class="date-grid-row">
+            
+            <!-- First Input: From Date -->
+            <div class="form-group">
+              <label for="fromDate">From Date (Start Date)</label>
+              <input 
+                type="date" 
+                id="fromDate" 
+                name="fromDate"
+                required
+              >
+              <!-- Red error message placeholder for fromDate -->
+              <span class="error-msg" id="fromDateError"></span>
+            </div>
+
+            <!-- Second Input: To Date -->
+            <div class="form-group">
+              <label for="toDate">To Date (End Date)</label>
+              <input 
+                type="date" 
+                id="toDate" 
+                name="toDate"
+                required
+              >
+              <!-- Red error message placeholder for toDate -->
+              <span class="error-msg" id="toDateError"></span>
+            </div>
+
+          </div>
+
+          <!-- Real-Time Duration Badge -->
+          <div id="durationContainer" style="display: none; margin-bottom: 16px;">
+            <span class="leave-days-badge" id="durationBadge">
+              📅 Total Duration: <strong id="totalDaysText">0 days</strong>
+            </span>
+          </div>
+
+          <!-- Reason Field -->
+          <div class="form-group">
+            <label for="leaveReason">Reason for Leave</label>
+            <textarea 
+              id="leaveReason" 
+              rows="3" 
+              placeholder="Please provide a brief reason for your leave request..."
+              style="padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: #f8fafc; outline: none; resize: vertical;"
+            ></textarea>
+            <span class="error-msg" id="reasonError"></span>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-primary" id="submitLeaveBtn">
+            Submit Leave Request →
+          </button>
+        </form>
+      </section>
+
+      <!-- =====================================================================
+           MY LEAVE REQUESTS TABLE (Saved to localStorage)
+           ===================================================================== -->
+      <section class="card-section">
+        <h3>My Leave History</h3>
+        <p class="section-desc">Track status of your submitted leave applications.</p>
+        
+        <div id="leaveListContainer">
+          <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 20px;">
+            No leave requests submitted yet.
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Success Popup Modal -->
+  <div class="popup-overlay" id="dashboardPopup">
+    <div class="popup-box">
+      <div class="popup-icon-circle">✓</div>
+      <h3 class="popup-title" id="popupTitle">Success!</h3>
+      <p class="popup-message" id="popupDesc">Your leave request has been submitted successfully.</p>
+      <button type="button" class="popup-btn" id="popupCloseBtn">OK</button>
+    </div>
   </div>
 
   <script>
     // =========================================================================
-    // Dashboard Data Display & Logout Logic
+    // 1. Dashboard User Session & Profile Setup
     // =========================================================================
-
-    // 1. Parse authenticated user data from localStorage
     const loggedInUserData = JSON.parse(localStorage.getItem("loggedInUser"));
 
-    // 2. Populate user profile details on the dashboard
     if (loggedInUserData) {
       document.getElementById("welcomeMessage").textContent = `Welcome, ${loggedInUserData.name}!`;
       document.getElementById("userEmailDisplay").textContent = loggedInUserData.email;
     }
 
-    // 3. Logout Event Listener
-    const logoutBtn = document.getElementById("logoutBtn");
-    
-    logoutBtn.addEventListener("click", function() {
-      const confirmLogout = window.confirm("Are you sure you want to log out?");
-      
-      if (confirmLogout) {
-        // Remove the session from localStorage
+    // Logout functionality
+    document.getElementById("logoutBtn").addEventListener("click", function() {
+      if (window.confirm("Are you sure you want to log out?")) {
         localStorage.removeItem("loggedInUser");
-
-        // Redirect back to login.html
         alert("Logged out successfully");
         window.location.href = "login.html";
       }
     });
+
+    // =========================================================================
+    // 2. DOM Elements for Date Inputs & Validation
+    // =========================================================================
+    const fromDateInput = document.getElementById("fromDate");
+    const toDateInput = document.getElementById("toDate");
+    const leaveForm = document.getElementById("leaveForm");
+    const leaveTypeInput = document.getElementById("leaveType");
+    const leaveReasonInput = document.getElementById("leaveReason");
+
+    const fromDateError = document.getElementById("fromDateError");
+    const toDateError = document.getElementById("toDateError");
+    const reasonError = document.getElementById("reasonError");
+    const formAlert = document.getElementById("formAlert");
+
+    const durationContainer = document.getElementById("durationContainer");
+    const totalDaysText = document.getElementById("totalDaysText");
+
+    // =========================================================================
+    // 3. Set Initial Minimum Date to Today's Date
+    // Format: YYYY-MM-DD (e.g., 2026-11-04)
+    // Prevents selecting past dates before today!
+    // =========================================================================
+    const today = new Date().toISOString().split("T")[0];
+    fromDateInput.min = today;
+    toDateInput.min = today;
+
+    // Helper: clears date error messages
+    function clearDateErrors() {
+      fromDateError.textContent = "";
+      toDateError.textContent = "";
+      reasonError.textContent = "";
+      formAlert.style.display = "none";
+      formAlert.textContent = "";
+    }
+
+    // Helper: calculate and display total days between dates
+    function updateDurationBadge() {
+      const fromVal = fromDateInput.value;
+      const toVal = toDateInput.value;
+
+      if (fromVal && toVal && toVal >= fromVal) {
+        const start = new Date(fromVal);
+        const end = new Date(toVal);
+        // Calculate difference in days: (end - start) + 1 day inclusive
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        totalDaysText.textContent = `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+        durationContainer.style.display = "block";
+      } else {
+        durationContainer.style.display = "none";
+      }
+    }
+
+    // =========================================================================
+    // 4. REQUIREMENT: fromDate Change Event Listener
+    // - On change, set toDate.min = fromDate.value (disables all dates before it)
+    // - If toDate has a previous date that is now invalid, clear it & show red error
+    // =========================================================================
+    fromDateInput.addEventListener("change", function() {
+      // Clear any prior fromDate error
+      fromDateError.textContent = "";
+
+      const selectedFromDate = fromDateInput.value;
+
+      if (selectedFromDate) {
+        // Step A: Disable all previous dates in Second Input (toDate)
+        // by setting its min attribute to the chosen fromDate!
+        toDateInput.min = selectedFromDate;
+
+        // Step B: If user already selected a toDate and it is now EARLIER
+        // than the newly changed fromDate, clear it and show red error!
+        if (toDateInput.value && toDateInput.value < selectedFromDate) {
+          toDateInput.value = ""; // Clear invalid value
+          toDateError.textContent = "To Date cannot be before From Date";
+        } else {
+          // If valid, clear toDate error
+          toDateError.textContent = "";
+        }
+      } else {
+        // If fromDate was cleared by user, reset toDate.min back to today
+        toDateInput.min = today;
+        toDateError.textContent = "";
+      }
+
+      // Update days duration calculation
+      updateDurationBadge();
+    });
+
+    // =========================================================================
+    // 5. REQUIREMENT: toDate Change Event Listener
+    // - If user selects an invalid date before fromDate, show red error & clear it
+    // =========================================================================
+    toDateInput.addEventListener("change", function() {
+      const fromVal = fromDateInput.value;
+      const toVal = toDateInput.value;
+
+      // If both dates exist, ensure toDate is NOT earlier than fromDate
+      if (fromVal && toVal) {
+        if (toVal < fromVal) {
+          toDateError.textContent = "To Date cannot be before From Date";
+          toDateInput.value = ""; // Clear the invalid date
+        } else {
+          toDateError.textContent = ""; // Date is valid
+        }
+      } else {
+        toDateError.textContent = "";
+      }
+
+      // Update days duration calculation
+      updateDurationBadge();
+    });
+
+    // =========================================================================
+    // 6. REQUIREMENT: validateDates() Function for Form Submission
+    // - Checks that both dates are selected
+    // - Checks that toDate is not earlier than fromDate
+    // - Returns true if valid, false if invalid
+    // =========================================================================
+    function validateDates() {
+      clearDateErrors();
+      let isValid = true;
+
+      const fromVal = fromDateInput.value;
+      const toVal = toDateInput.value;
+
+      // 1. Check if From Date is empty
+      if (!fromVal) {
+        fromDateError.textContent = "Please select a From Date.";
+        isValid = false;
+      } else if (fromVal < today) {
+        fromDateError.textContent = "From Date cannot be in the past.";
+        isValid = false;
+      }
+
+      // 2. Check if To Date is empty
+      if (!toVal) {
+        toDateError.textContent = "Please select a To Date.";
+        isValid = false;
+      }
+
+      // 3. Check if To Date is before From Date
+      if (fromVal && toVal) {
+        if (toVal < fromVal) {
+          toDateError.textContent = "To Date cannot be before From Date";
+          toDateInput.value = ""; // Clear the invalid input
+          isValid = false;
+        }
+      }
+
+      // 4. Check Reason
+      if (!leaveReasonInput.value.trim()) {
+        reasonError.textContent = "Please provide a reason for your leave.";
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    // =========================================================================
+    // 7. Form Submit Event Listener
+    // - Calls validateDates()
+    // - If invalid, prevents submission
+    // - If valid, stores leave request in localStorage and shows success popup
+    // =========================================================================
+    leaveForm.addEventListener("submit", function(event) {
+      // Prevent default page reload
+      event.preventDefault();
+
+      // Run our date & form validation logic
+      const isFormValid = validateDates();
+
+      // If validation fails, STOP here!
+      if (!isFormValid) {
+        return;
+      }
+
+      // All validations passed! Create leave request object
+      const newLeave = {
+        id: Date.now(),
+        userEmail: loggedInUserData.email,
+        leaveType: leaveTypeInput.value,
+        fromDate: fromDateInput.value,
+        toDate: toDateInput.value,
+        reason: leaveReasonInput.value.trim(),
+        status: "PENDING",
+        submittedAt: new Date().toLocaleDateString()
+      };
+
+      // Save to localStorage
+      const existingLeaves = JSON.parse(localStorage.getItem("leaveRequests")) || [];
+      existingLeaves.unshift(newLeave);
+      localStorage.setItem("leaveRequests", JSON.stringify(existingLeaves));
+
+      // Show Success Popup Modal
+      const popup = document.getElementById("dashboardPopup");
+      document.getElementById("popupTitle").textContent = "Leave Submitted!";
+      document.getElementById("popupDesc").textContent = 
+        `Your ${newLeave.leaveType} from ${newLeave.fromDate} to ${newLeave.toDate} was submitted successfully!`;
+      popup.classList.add("active");
+
+      // Reset Form fields & min constraints
+      leaveForm.reset();
+      fromDateInput.min = today;
+      toDateInput.min = today;
+      durationContainer.style.display = "none";
+
+      // Refresh displayed history
+      renderLeaveHistory();
+    });
+
+    // Close popup button
+    document.getElementById("popupCloseBtn").addEventListener("click", function() {
+      document.getElementById("dashboardPopup").classList.remove("active");
+    });
+
+    // =========================================================================
+    // 8. Render Leave History from localStorage
+    // =========================================================================
+    function renderLeaveHistory() {
+      const container = document.getElementById("leaveListContainer");
+      const allLeaves = JSON.parse(localStorage.getItem("leaveRequests")) || [];
+      const userLeaves = allLeaves.filter(l => l.userEmail === loggedInUserData.email);
+
+      if (userLeaves.length === 0) {
+        container.innerHTML = `
+          <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 20px;">
+            No leave requests submitted yet.
+          </p>`;
+        return;
+      }
+
+      let html = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px;">
+          <thead>
+            <tr style="background: #f1f5f9; text-align: left; color: #475569;">
+              <th style="padding: 10px; border-radius: 6px 0 0 6px;">Type</th>
+              <th style="padding: 10px;">From</th>
+              <th style="padding: 10px;">To</th>
+              <th style="padding: 10px;">Status</th>
+              <th style="padding: 10px; border-radius: 0 6px 6px 0;">Reason</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      userLeaves.forEach(leave => {
+        html += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px 10px; font-weight: 600; color: #0f172a;">${leave.leaveType}</td>
+            <td style="padding: 12px 10px; color: #334155;">${leave.fromDate}</td>
+            <td style="padding: 12px 10px; color: #334155;">${leave.toDate}</td>
+            <td style="padding: 12px 10px;">
+              <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+                ● ${leave.status}
+              </span>
+            </td>
+            <td style="padding: 12px 10px; color: #64748b;">${leave.reason}</td>
+          </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    // Initial render of history
+    renderLeaveHistory();
   </script>
 
 </body>
 </html>
-

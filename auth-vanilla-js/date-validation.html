@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Validation Demo - JavaScript</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .demo-wrapper {
+      background: #ffffff;
+      max-width: 500px;
+      width: 100%;
+      border-radius: 14px;
+      padding: 36px 30px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+    .demo-header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .demo-header h2 {
+      font-size: 1.5rem;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .demo-header p {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 540px) {
+      .date-row {
+        grid-template-columns: 1fr;
+      }
+    }
+    .success-alert {
+      display: none;
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-wrapper">
+    <div class="demo-header">
+      <div class="logo-badge">📅</div>
+      <h2>Date Range Validation</h2>
+      <p>From Date &amp; To Date dynamic constraint handling</p>
+    </div>
+
+    <!-- Success Message Box -->
+    <div class="success-alert" id="successMsg">
+      ✓ Dates are valid! Form submitted successfully.
+    </div>
+
+    <!-- Date Validation Form -->
+    <form id="dateForm" novalidate>
+
+      <div class="date-row">
+        
+        <!-- 1. First Input: From Date -->
+        <div class="form-group">
+          <label for="fromDate">From Date</label>
+          <input 
+            type="date" 
+            id="fromDate" 
+            name="fromDate"
+            required
+          >
+          <!-- Red error message for From Date -->
+          <span class="error-msg" id="fromDateError"></span>
+        </div>
+
+        <!-- 2. Second Input: To Date -->
+        <div class="form-group">
+          <label for="toDate">To Date</label>
+          <input 
+            type="date" 
+            id="toDate" 
+            name="toDate"
+            required
+          >
+          <!-- Red error message for To Date -->
+          <span class="error-msg" id="toDateError"></span>
+        </div>
+
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-primary" id="submitBtn">
+        Validate &amp; Submit →
+      </button>
+
+      <!-- Back to Dashboard / Login Link -->
+      <div class="auth-footer">
+        <a href="dashboard.html">← Go to Employee Dashboard</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // =========================================================================
+    // JAVASCRIPT DATE VALIDATION LOGIC
+    // =========================================================================
+
+    // 1. Get references to input elements and error containers
+    const fromDate = document.getElementById("fromDate");
+    const toDate = document.getElementById("toDate");
+    const fromDateError = document.getElementById("fromDateError");
+    const toDateError = document.getElementById("toDateError");
+    const dateForm = document.getElementById("dateForm");
+    const successMsg = document.getElementById("successMsg");
+
+    // =========================================================================
+    // 2. Set Today's Date as Minimum for Both Inputs
+    // Format: YYYY-MM-DD using ISO string split
+    // This prevents user from picking past dates before today!
+    // =========================================================================
+    const today = new Date().toISOString().split("T")[0];
+    fromDate.min = today;
+    toDate.min = today;
+
+    // Helper function to clear previous error messages
+    function clearErrors() {
+      fromDateError.textContent = "";
+      toDateError.textContent = "";
+      successMsg.style.display = "none";
+    }
+
+    // =========================================================================
+    // 3. First Input (fromDate) 'change' Event Listener
+    // REQUIREMENT:
+    // - When user selects fromDate (e.g., 04-11-2026), set toDate.min = fromDate.value.
+    //   This makes all dates before fromDate DISABLED / NOT SELECTABLE in toDate.
+    // - If toDate was already chosen and is earlier than new fromDate, clear it
+    //   and show red error "To Date cannot be before From Date".
+    // =========================================================================
+    fromDate.addEventListener("change", function() {
+      clearErrors();
+
+      const selectedFromDate = fromDate.value;
+
+      if (selectedFromDate) {
+        // Disable all previous dates in toDate input
+        toDate.min = selectedFromDate;
+
+        // If toDate already has a value, check if it became invalid
+        if (toDate.value && toDate.value < selectedFromDate) {
+          toDate.value = ""; // Clear invalid value
+          toDateError.textContent = "To Date cannot be before From Date";
+        }
+      } else {
+        // If fromDate is cleared, reset toDate minimum to today
+        toDate.min = today;
+      }
+    });
+
+    // =========================================================================
+    // 4. Second Input (toDate) 'change' Event Listener
+    // REQUIREMENT:
+    // - If user enters/picks a date earlier than fromDate, clear it and show error.
+    // =========================================================================
+    toDate.addEventListener("change", function() {
+      clearErrors();
+
+      const fromVal = fromDate.value;
+      const toVal = toDate.value;
+
+      if (fromVal && toVal) {
+        if (toVal < fromVal) {
+          toDateError.textContent = "To Date cannot be before From Date";
+          toDate.value = ""; // Clear the invalid date
+        }
+      }
+    });
+
+    // =========================================================================
+    // 5. Validation Function on Submit: validateDates()
+    // REQUIREMENT:
+    // - Check if fromDate or toDate is empty
+    // - Check if toDate < fromDate
+    // - Return false if invalid, true if valid
+    // =========================================================================
+    function validateDates() {
+      clearErrors();
+      let isValid = true;
+
+      const fromVal = fromDate.value;
+      const toVal = toDate.value;
+
+      // Check if fromDate is selected
+      if (!fromVal) {
+        fromDateError.textContent = "Please select a From Date.";
+        isValid = false;
+      }
+
+      // Check if toDate is selected
+      if (!toVal) {
+        toDateError.textContent = "Please select a To Date.";
+        isValid = false;
+      }
+
+      // Check if toDate is earlier than fromDate
+      if (fromVal && toVal && toVal < fromVal) {
+        toDateError.textContent = "To Date cannot be before From Date";
+        toDate.value = ""; // Clear invalid date
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    // =========================================================================
+    // 6. Form Submit Event Listener
+    // =========================================================================
+    dateForm.addEventListener("submit", function(event) {
+      // Prevent browser default form reload
+      event.preventDefault();
+
+      // Run our validation function
+      if (validateDates()) {
+        // Form is valid!
+        successMsg.style.display = "block";
+        successMsg.textContent = `✓ Valid date range: ${fromDate.value} to ${toDate.value}`;
+      }
+    });
+  </script>
+
+</body>
+</html>

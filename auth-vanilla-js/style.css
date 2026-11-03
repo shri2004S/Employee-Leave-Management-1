@@ -389,3 +389,56 @@ body {
 .popup-btn:active {
   transform: scale(0.98);
 }
+
+
+/* ========================================================
+   Leave Application & Date Validation Styles
+   ======================================================== */
+.card-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 26px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.card-section h3 {
+  font-size: 1.25rem;
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.card-section .section-desc {
+  color: #64748b;
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+
+.date-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.leave-days-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  border: 1px solid #dbeafe;
+}
+
+@media (max-width: 640px) {
+  .date-grid-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
