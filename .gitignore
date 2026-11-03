@@ -9,6 +9,7 @@ backend/target/
 *.log
 
 # Frontend dependencies & build outputs
+node_modules/
 frontend/node_modules/
 frontend/.pnpm-store/
 .npm/

@@ -405,34 +405,35 @@
       }
 
       let html = `
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px;">
-          <thead>
-            <tr style="background: #f1f5f9; text-align: left; color: #475569;">
-              <th style="padding: 10px; border-radius: 6px 0 0 6px;">Type</th>
-              <th style="padding: 10px;">From</th>
-              <th style="padding: 10px;">To</th>
-              <th style="padding: 10px;">Status</th>
-              <th style="padding: 10px; border-radius: 0 6px 6px 0;">Reason</th>
-            </tr>
-          </thead>
-          <tbody>`;
+        <div class="table-responsive">
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>`;
 
       userLeaves.forEach(leave => {
         html += `
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 12px 10px; font-weight: 600; color: #0f172a;">${leave.leaveType}</td>
-            <td style="padding: 12px 10px; color: #334155;">${leave.fromDate}</td>
-            <td style="padding: 12px 10px; color: #334155;">${leave.toDate}</td>
-            <td style="padding: 12px 10px;">
+          <tr>
+            <td style="font-weight: 600; color: #0f172a;">${leave.leaveType}</td>
+            <td>${leave.fromDate}</td>
+            <td>${leave.toDate}</td>
+            <td>
               <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
                 ● ${leave.status}
               </span>
             </td>
-            <td style="padding: 12px 10px; color: #64748b;">${leave.reason}</td>
+            <td style="color: #64748b;">${leave.reason}</td>
           </tr>`;
       });
 
-      html += `</tbody></table>`;
+      html += `</tbody></table></div>`;
       container.innerHTML = html;
     }
 
