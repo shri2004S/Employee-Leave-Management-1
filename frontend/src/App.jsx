@@ -127,36 +127,37 @@ function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTab, setActiveTab] = useState("EMPLOYEE"); // "EMPLOYEE" or "ADMIN"
   const [user, setUser] = useState(loadSavedUser);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-  async function verifySession() {
-    try {
-      const response = await fetch(`${API_URL}/me`, {
-        method: "GET",
-        credentials: "include",
-      });
+    async function verifySession() {
+      try {
+        const response = await fetch(`${API_URL}/me`, {
+          method: "GET",
+          credentials: "include",
+        });
 
-      if (!response.ok) {
-        throw new Error("Session expired");
+        if (!response.ok) {
+          throw new Error("Session expired");
+        }
+
+        const currentUser = await response.json();
+
+        localStorage.setItem("leaveUser", JSON.stringify(currentUser));
+        setUser(currentUser);
+
+        setActiveTab(
+          currentUser.role === "ADMIN" ? "ADMIN" : "EMPLOYEE"
+        );
+      } catch {
+        localStorage.removeItem("leaveUser");
+        localStorage.removeItem("leaveToken");
+        setUser(null);
       }
-
-      const currentUser = await response.json();
-
-      localStorage.setItem("leaveUser", JSON.stringify(currentUser));
-      setUser(currentUser);
-
-      setActiveTab(
-        currentUser.role === "ADMIN" ? "ADMIN" : "EMPLOYEE"
-      );
-    } catch {
-      localStorage.removeItem("leaveUser");
-      localStorage.removeItem("leaveToken");
-      setUser(null);
     }
-  }
 
-  verifySession();
-}, []);
+    verifySession();
+  }, []);
 
   // ---------- JavaScript Popup Modal State ----------
   const [popup, setPopup] = useState({
@@ -166,8 +167,6 @@ function App() {
     btnText: "",
     onConfirm: null,
   });
-
-  
 
   // ---------- validation helpers ----------
   function validateField(field, values) {
@@ -258,7 +257,7 @@ function App() {
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
-      setMessage({ type: "error", text: "Please fix the highlighted fields." });
+      setMessage({ type: "error", text: "Please fix the highlighted fields below." });
       const firstInvalid = ["name", "email", "password", "confirmPassword"].find(
         (f) => validationErrors[f]
       );
@@ -275,6 +274,7 @@ function App() {
         const response = await fetch(`${API_URL}/forgot-password`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             email: cleaned.email,
             newPassword: cleaned.password,
@@ -291,8 +291,8 @@ function App() {
         setPopup({
           show: true,
           title: "Password Reset Successfully!",
-          message: "Your password has been updated. Please sign in with your new password.",
-          btnText: "Proceed to Login →",
+          message: "Your password has been securely updated. Please sign in with your new credentials.",
+          btnText: "Proceed to Sign In →",
           onConfirm: () => {
             setPopup({ show: false, title: "", message: "", btnText: "", onConfirm: null });
             setIsForgotPassword(false);
@@ -338,9 +338,9 @@ function App() {
         // Show "Register Successfully" Popup modal and switch to Login!
         setPopup({
           show: true,
-          title: "Registered Successfully!",
-          message: "Your employee account has been created. Please sign in to access your dashboard.",
-          btnText: "Go to Login →",
+          title: "Account Created Successfully!",
+          message: "Your employee account has been created. Please sign in to access your portal.",
+          btnText: "Go to Sign In →",
           onConfirm: () => {
             setPopup({ show: false, title: "", message: "", btnText: "", onConfirm: null });
             setIsLogin(true);
@@ -360,7 +360,7 @@ function App() {
       // Show "Login Successfully" Popup modal and proceed to Dashboard!
       setPopup({
         show: true,
-        title: "Login Successfully!",
+        title: "Login Successful!",
         message: `Welcome back, ${data.name || data.email}! Your session is active.`,
         btnText: "Open Dashboard →",
         onConfirm: () => {
@@ -386,25 +386,26 @@ function App() {
   }
 
   async function logout() {
-  try {
-    await fetch(`${API_URL}/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-  } catch (error) {
-    console.error("Logout request failed:", error);
-  } finally {
-    localStorage.removeItem("leaveToken");
-    localStorage.removeItem("leaveUser");
+    try {
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    } finally {
+      localStorage.removeItem("leaveToken");
+      localStorage.removeItem("leaveUser");
 
-    setUser(null);
-    setForm(EMPTY_FORM);
-    setErrors({});
-    setTouched({});
-    setMessage({ type: "", text: "" });
-    setActiveTab("EMPLOYEE");
+      setUser(null);
+      setForm(EMPTY_FORM);
+      setErrors({});
+      setTouched({});
+      setMessage({ type: "", text: "" });
+      setActiveTab("EMPLOYEE");
+      setIsSidebarOpen(false);
+    }
   }
-}
 
   function handleLeaveSubmitted() {
     setRefreshTrigger((prev) => prev + 1);
@@ -425,82 +426,312 @@ function App() {
   const renderError = (field) =>
     touched[field] && errors[field] ? (
       <span id={`error-${field}`} className="field-error" role="alert">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
         {errors[field]}
       </span>
     ) : null;
 
   const strength = passwordStrength(form.password);
 
-  // ---------- dashboard ----------
+  // Helper for user avatar initials
+  const getInitials = (name, email) => {
+    if (name) {
+      const parts = name.trim().split(" ");
+      if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+      return name.slice(0, 2).toUpperCase();
+    }
+    return email ? email.slice(0, 2).toUpperCase() : "U";
+  };
+
+  // Get formatted today date
+  const todayFormatted = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date());
+
+  // ---------- DASHBOARD LAYOUT ----------
   if (user) {
     const isAdmin = user.role === "ADMIN";
+    const initials = getInitials(user.name, user.email);
 
     return (
-      <div className="dashboard">
-        <header className="topbar">
-          <div className="brand">
-            <span className="brand-icon">L</span>
-            <span>LeaveManagement</span>
-            <span className="role-tag">{user.role}</span>
+      <div className="dashboard-app-container">
+        {/* Mobile Header Bar */}
+        <header className="mobile-header">
+          <button
+            className="mobile-menu-toggle"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label="Toggle Navigation Menu"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div className="mobile-brand">
+            <span className="brand-logo-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </span>
+            <span>LeaveHub</span>
           </div>
 
-          <div className="topbar-actions">
-            {isAdmin && (
-              <div className="portal-switcher">
-                <button
-                  className={`switch-tab ${activeTab === "ADMIN" ? "active" : ""}`}
-                  onClick={() => setActiveTab("ADMIN")}
-                >
-                  🏢 Admin Portal
-                </button>
-                <button
-                  className={`switch-tab ${activeTab === "EMPLOYEE" ? "active" : ""}`}
-                  onClick={() => setActiveTab("EMPLOYEE")}
-                >
-                  👤 My Leave View
-                </button>
-              </div>
-            )}
-            <button className="logout-btn" onClick={logout}>
-              Logout
-            </button>
+          <div className="mobile-avatar-pill">
+            <span className="avatar-circle-sm">{initials}</span>
           </div>
         </header>
 
-        <main className="dashboard-content">
-          <p className="eyebrow">
-            {isAdmin && activeTab === "ADMIN"
-              ? "ADMINISTRATION DASHBOARD"
-              : "EMPLOYEE DASHBOARD"}
-          </p>
-          <h1>Welcome, {user.name || user.email}!</h1>
-          <p className="subtitle">
-            {isAdmin && activeTab === "ADMIN"
-              ? "Manage and review organization-wide leave requests with approve/reject workflow."
-              : "Submit new leave requests, monitor approvals, or update pending applications."}
-          </p>
+        {/* Sidebar Overlay for Mobile */}
+        {isSidebarOpen && (
+          <div
+            className="sidebar-backdrop"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
-          {isAdmin && activeTab === "ADMIN" ? (
-            <AdminLeaveManagement />
-          ) : (
-            <>
-              <ApplyLeave onLeaveSubmitted={handleLeaveSubmitted} />
-              <MyLeaveRequests refreshTrigger={refreshTrigger} />
-            </>
-          )}
-        </main>
+        {/* Professional Sidebar Navigation */}
+        <aside className={`app-sidebar ${isSidebarOpen ? "sidebar-open" : ""}`}>
+          <div className="sidebar-brand">
+            <div className="brand-logo-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <div className="brand-text-block">
+              <h2>LeaveHub</h2>
+              <span>HR Leave Portal</span>
+            </div>
+          </div>
+
+          <div className="sidebar-nav-section">
+            <p className="sidebar-section-title">MAIN NAVIGATION</p>
+            <nav className="sidebar-menu">
+              {isAdmin ? (
+                <>
+                  <button
+                    className={`sidebar-nav-item ${activeTab === "ADMIN" ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveTab("ADMIN");
+                      setIsSidebarOpen(false);
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                      <line x1="8" y1="21" x2="16" y2="21"></line>
+                      <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>Admin Portal</span>
+                    <span className="nav-badge-pill">Admin</span>
+                  </button>
+
+                  <button
+                    className={`sidebar-nav-item ${activeTab === "EMPLOYEE" ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveTab("EMPLOYEE");
+                      setIsSidebarOpen(false);
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>My Leave View</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="sidebar-nav-item active"
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="3" width="7" height="7"></rect>
+                      <rect x="14" y="14" width="7" height="7"></rect>
+                      <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                  </button>
+                </>
+              )}
+            </nav>
+          </div>
+
+          <div className="sidebar-nav-section quick-jump-section">
+            <p className="sidebar-section-title">QUICK ACCESS</p>
+            <nav className="sidebar-menu">
+              <a
+                href="#apply-leave-section"
+                className="sidebar-nav-item"
+                onClick={() => {
+                  if (activeTab !== "EMPLOYEE") setActiveTab("EMPLOYEE");
+                  setIsSidebarOpen(false);
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <span>Apply for Leave</span>
+              </a>
+
+              <a
+                href="#my-requests-section"
+                className="sidebar-nav-item"
+                onClick={() => {
+                  if (activeTab !== "EMPLOYEE") setActiveTab("EMPLOYEE");
+                  setIsSidebarOpen(false);
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>My Requests History</span>
+              </a>
+            </nav>
+          </div>
+
+          {/* User Profile Card at bottom of sidebar */}
+          <div className="sidebar-user-footer">
+            <div className="user-profile-card">
+              <div className="avatar-circle">{initials}</div>
+              <div className="user-info-text">
+                <p className="user-name-label">{user.name || "Employee"}</p>
+                <p className="user-email-label">{user.email}</p>
+                <span className={`role-pill ${user.role.toLowerCase()}`}>
+                  {user.role}
+                </span>
+              </div>
+            </div>
+
+            <button className="sidebar-logout-btn" onClick={logout} title="Sign Out">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="dashboard-main-wrapper">
+          {/* Topbar Banner */}
+          <header className="main-topbar">
+            <div className="topbar-left">
+              <h1 className="topbar-title">
+                {isAdmin && activeTab === "ADMIN" ? "Admin Management Portal" : "Employee Leave Dashboard"}
+              </h1>
+              <p className="topbar-subtitle">
+                {isAdmin && activeTab === "ADMIN"
+                  ? "Review, approve, or reject organization leave applications in real time."
+                  : "Submit new leave applications, track approval statuses, and manage your records."}
+              </p>
+            </div>
+
+            <div className="topbar-right">
+              <div className="date-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>{todayFormatted}</span>
+              </div>
+
+              {isAdmin && (
+                <div className="portal-switch-pill">
+                  <button
+                    className={`switch-tab-btn ${activeTab === "ADMIN" ? "active" : ""}`}
+                    onClick={() => setActiveTab("ADMIN")}
+                  >
+                    🏢 Admin View
+                  </button>
+                  <button
+                    className={`switch-tab-btn ${activeTab === "EMPLOYEE" ? "active" : ""}`}
+                    onClick={() => setActiveTab("EMPLOYEE")}
+                  >
+                    👤 Employee View
+                  </button>
+                </div>
+              )}
+            </div>
+          </header>
+
+          {/* Welcome Greeting Banner */}
+          <section className="welcome-banner-card">
+            <div className="welcome-banner-content">
+              <span className="welcome-tag-pill">PORTAL ACTIVE</span>
+              <h2>Welcome back, {user.name || user.email}! 👋</h2>
+              <p>
+                {isAdmin && activeTab === "ADMIN"
+                  ? "Here is your administrative command center for organizational attendance and approvals."
+                  : "You can apply for casual, sick, or earned leaves below and monitor their statuses live."}
+              </p>
+            </div>
+            <div className="welcome-banner-icon" aria-hidden="true">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                <line x1="12" y1="11" x2="12" y2="17"></line>
+                <line x1="9" y1="14" x2="15" y2="14"></line>
+              </svg>
+            </div>
+          </section>
+
+          {/* Tab Content */}
+          <main className="dashboard-content-area">
+            {isAdmin && activeTab === "ADMIN" ? (
+              <AdminLeaveManagement />
+            ) : (
+              <>
+                <div id="apply-leave-section">
+                  <ApplyLeave onLeaveSubmitted={handleLeaveSubmitted} />
+                </div>
+                <div id="my-requests-section">
+                  <MyLeaveRequests refreshTrigger={refreshTrigger} />
+                </div>
+              </>
+            )}
+          </main>
+        </div>
       </div>
     );
   }
 
-  // ---------- auth screen ----------
+  // ---------- AUTH SCREEN (LOGIN & REGISTER) ----------
   return (
-    <div className="page">
+    <div className="auth-split-page">
       {/* JavaScript Popup Modal for React */}
       {popup.show && (
         <div className="react-popup-overlay">
           <div className="react-popup-box">
-            <div className="react-popup-icon">✓</div>
+            <div className="react-popup-icon-wrap">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
             <h3 className="react-popup-title">{popup.title}</h3>
             <p className="react-popup-msg">{popup.message}</p>
             <button
@@ -514,101 +745,194 @@ function App() {
         </div>
       )}
 
-      <section className="intro-panel">
-        <div className="brand">
-          <span className="brand-icon">L</span> LeaveManagement
+      {/* Left Brand Showcase Panel */}
+      <section className="auth-brand-panel">
+        <div className="auth-brand-header">
+          <div className="brand-logo-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span className="brand-title-text">LeaveHub</span>
         </div>
-        <div className="intro-content">
-          <span className="intro-tag">EMPLOYEE LEAVE MANAGEMENT SYSTEM</span>
-          <h1> </h1>
-          <img
-            src={illustration}
-            alt="Employee Leave Management Illustration"
-            className="auth-illustration"
-          />
+
+        <div className="auth-hero-content">
+          <span className="hero-pill-tag">ENTERPRISE HR SOLUTION</span>
+          <h1>Manage Employee Absences & Leaves with Confidence</h1>
+          <p className="hero-description">
+            Experience a smooth, paperless leave application workflow with real-time approvals, live quota tracking, and role-based access control.
+          </p>
+
+          <div className="hero-features-list">
+            <div className="feature-item">
+              <span className="feature-icon">⚡</span>
+              <div>
+                <strong>Instant Approvals</strong>
+                <p>One-click approve or reject workflow for supervisors.</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <span className="feature-icon">📅</span>
+              <div>
+                <strong>Smart Date Validation</strong>
+                <p>Prevents retroactive selections and inverted ranges.</p>
+              </div>
+            </div>
+            <div className="feature-item">
+              <span className="feature-icon">🔒</span>
+              <div>
+                <strong>Secure Session Guard</strong>
+                <p>Enterprise JWT authentication with HttpOnly cookie protection.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="illustration-wrapper">
+            <img
+              src={illustration}
+              alt="Leave Management Illustration"
+              className="auth-hero-illustration"
+            />
+          </div>
         </div>
       </section>
 
-      <section className="form-panel">
-        <div className="auth-card">
-          <div className="mobile-brand brand">
-            <span className="brand-icon">L</span> LeaveManagement
+      {/* Right Form Card Panel */}
+      <section className="auth-form-panel">
+        <div className="auth-form-card">
+          <div className="mobile-brand-display">
+            <div className="brand-logo-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <span>LeaveHub HR</span>
           </div>
 
-          <p className="eyebrow">
-            {isForgotPassword
-              ? "PASSWORD RECOVERY"
-              : isLogin
-              ? "WELCOME BACK"
-              : "GET STARTED"}
-          </p>
-          <h2>
-            {isForgotPassword
-              ? "Reset your password"
-              : isLogin
-              ? "Sign in to your account"
-              : "Create your account"}
-          </h2>
-          <p className="form-subtitle">
-            {isForgotPassword
-              ? "Enter your registered email and choose a new password."
-              : isLogin
-              ? "Enter your credentials to access the portal."
-              : "Register as an employee to get started."}
-          </p>
+          <div className="auth-card-heading">
+            <p className="auth-eyebrow">
+              {isForgotPassword
+                ? "PASSWORD RECOVERY"
+                : isLogin
+                ? "WELCOME BACK"
+                : "GET STARTED"}
+            </p>
+            <h2>
+              {isForgotPassword
+                ? "Reset your password"
+                : isLogin
+                ? "Sign in to your account"
+                : "Create employee account"}
+            </h2>
+            <p className="auth-card-subtitle">
+              {isForgotPassword
+                ? "Enter your registered email address and choose a new password."
+                : isLogin
+                ? "Enter your workplace credentials to access your leave portal."
+                : "Register with your company email to manage absences."}
+            </p>
+          </div>
 
+          {/* Segmented Auth Tabs */}
           {!isForgotPassword && (
-            <div className="auth-tabs">
+            <div className="segmented-auth-tabs">
               <button
-                className={isLogin ? "active" : ""}
-                onClick={() => switchMode(true)}
                 type="button"
+                className={`auth-tab-btn ${isLogin ? "active" : ""}`}
+                onClick={() => switchMode(true)}
               >
-                Login
+                Sign In
               </button>
               <button
-                className={!isLogin ? "active" : ""}
-                onClick={() => switchMode(false)}
                 type="button"
+                className={`auth-tab-btn ${!isLogin ? "active" : ""}`}
+                onClick={() => switchMode(false)}
               >
-                Register
+                Create Account
               </button>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit} noValidate className="auth-form-body">
+            {/* Full Name Field (Register Only) */}
             {!isLogin && !isForgotPassword && (
-              <label>
-                Full name (Letters only)
-                <input
-                  type="text"
-                  placeholder="Enter your full name"
-                  autoComplete="name"
-                  maxLength={LIMITS.NAME_MAX}
-                  onInput={(e) => {
-                    e.target.value = e.target.value.replace(/[^A-Za-z\s.'-]/g, "");
-                  }}
-                  {...fieldProps("name")}
-                />
+              <div className="form-group">
+                <label htmlFor="field-name">
+                  Full Name <span className="label-hint">(Letters only)</span>
+                </label>
+                <div className="input-icon-wrapper">
+                  <span className="input-leading-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="e.g. John Doe"
+                    autoComplete="name"
+                    maxLength={LIMITS.NAME_MAX}
+                    onInput={(e) => {
+                      e.target.value = e.target.value.replace(/[^A-Za-z\s.'-]/g, "");
+                    }}
+                    {...fieldProps("name")}
+                  />
+                </div>
                 {renderError("name")}
-              </label>
+              </div>
             )}
 
-            <label>
-              Email address
-              <input
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                maxLength={LIMITS.EMAIL_MAX}
-                {...fieldProps("email")}
-              />
+            {/* Email Field */}
+            <div className="form-group">
+              <label htmlFor="field-email">Company Email</label>
+              <div className="input-icon-wrapper">
+                <span className="input-leading-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </span>
+                <input
+                  type="email"
+                  placeholder="name@company.com"
+                  autoComplete="email"
+                  maxLength={LIMITS.EMAIL_MAX}
+                  {...fieldProps("email")}
+                />
+              </div>
               {renderError("email")}
-            </label>
+            </div>
 
-            <label>
-              {isForgotPassword ? "New password" : "Password"}
-              <div className="password-wrap">
+            {/* Password Field */}
+            <div className="form-group">
+              <div className="label-with-action">
+                <label htmlFor="field-password">
+                  {isForgotPassword ? "New Password" : "Password"}
+                </label>
+                {isLogin && !isForgotPassword && (
+                  <button
+                    type="button"
+                    className="forgot-pass-link"
+                    onClick={openForgotPassword}
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+
+              <div className="input-icon-wrapper">
+                <span className="input-leading-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                </span>
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder={
@@ -622,88 +946,114 @@ function App() {
                 />
                 <button
                   type="button"
-                  className="toggle-pass"
+                  className="password-toggle-btn"
                   onClick={() => setShowPassword((s) => !s)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   tabIndex={-1}
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  )}
                 </button>
               </div>
               {renderError("password")}
 
+              {/* Password strength meter */}
               {(!isLogin || isForgotPassword) && form.password && (
-                <div className="strength" aria-live="polite">
-                  <div className="strength-bar">
+                <div className="strength-meter-box" aria-live="polite">
+                  <div className="strength-segments">
                     {[1, 2, 3, 4].map((i) => (
-                      <span key={i} className={i <= strength ? `on s${strength}` : ""} />
+                      <span key={i} className={`seg ${i <= strength ? `active s${strength}` : ""}`} />
                     ))}
                   </div>
-                  <small>{STRENGTH_LABELS[strength]}</small>
+                  <div className="strength-label-text">
+                    Strength: <strong>{STRENGTH_LABELS[strength]}</strong>
+                  </div>
                 </div>
               )}
+
               {(!isLogin || isForgotPassword) && (
-                <small className="hint">
-                  {LIMITS.PASSWORD_MIN}+ chars with uppercase, lowercase, &amp; number.
+                <small className="field-hint-text">
+                  Must be at least 6 characters with uppercase, lowercase, &amp; numbers.
                 </small>
               )}
-            </label>
+            </div>
 
-            {/* Forgot password trigger link for login screen */}
-            {isLogin && !isForgotPassword && (
-              <div className="forgot-password-link-container">
-                <button
-                  type="button"
-                  className="text-link"
-                  onClick={openForgotPassword}
-                >
-                  Forgot password?
-                </button>
+            {/* Confirm Password Field */}
+            {(!isLogin || isForgotPassword) && (
+              <div className="form-group">
+                <label htmlFor="field-confirmPassword">
+                  {isForgotPassword ? "Confirm New Password" : "Confirm Password"}
+                </label>
+                <div className="input-icon-wrapper">
+                  <span className="input-leading-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Re-enter your password"
+                    autoComplete="new-password"
+                    maxLength={LIMITS.PASSWORD_MAX}
+                    {...fieldProps("confirmPassword")}
+                  />
+                </div>
+                {renderError("confirmPassword")}
               </div>
             )}
 
-            {(!isLogin || isForgotPassword) && (
-              <label>
-                {isForgotPassword ? "Confirm new password" : "Confirm password"}
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Re-enter password"
-                  autoComplete="new-password"
-                  maxLength={LIMITS.PASSWORD_MAX}
-                  {...fieldProps("confirmPassword")}
-                />
-                {renderError("confirmPassword")}
-              </label>
-            )}
-
+            {/* Server Error / Success Message */}
             {message.text && (
-              <p className={`message ${message.type === "success" ? "success" : ""}`} role="alert">
-                {message.text}
-              </p>
+              <div className={`form-feedback-alert ${message.type === "success" ? "success" : "error"}`} role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{message.text}</span>
+              </div>
             )}
 
-            <button className="submit-btn" type="submit" disabled={loading}>
-              {loading
-                ? "Please wait..."
-                : isForgotPassword
-                ? "Reset Password →"
-                : isLogin
-                ? "Sign In →"
-                : "Create Account →"}
+            {/* Action Submit Button */}
+            <button className="primary-action-btn" type="submit" disabled={loading}>
+              {loading ? (
+                <span className="btn-loading-flex">
+                  <span className="spinner-circle"></span>
+                  Processing...
+                </span>
+              ) : isForgotPassword ? (
+                "Update Password →"
+              ) : isLogin ? (
+                "Sign In to Dashboard →"
+              ) : (
+                "Create Employee Account →"
+              )}
             </button>
 
             {isForgotPassword && (
               <button
                 type="button"
-                className="back-btn"
+                className="secondary-back-btn"
                 onClick={() => switchMode(true)}
               >
-                ← Back to Login
+                ← Return to Sign In
               </button>
             )}
           </form>
 
-          <p className="security-note"></p>
+          <div className="auth-card-footer">
+            <p>Protected by enterprise session management &amp; role authorization.</p>
+          </div>
         </div>
       </section>
     </div>
