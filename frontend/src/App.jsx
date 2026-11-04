@@ -667,13 +667,22 @@ function App() {
                     className={`switch-tab-btn ${activeTab === "ADMIN" ? "active" : ""}`}
                     onClick={() => setActiveTab("ADMIN")}
                   >
-                    🏢 Admin View
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                      <line x1="8" y1="21" x2="16" y2="21"></line>
+                      <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>Admin View</span>
                   </button>
                   <button
                     className={`switch-tab-btn ${activeTab === "EMPLOYEE" ? "active" : ""}`}
                     onClick={() => setActiveTab("EMPLOYEE")}
                   >
-                    👤 Employee View
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Employee View</span>
                   </button>
                 </div>
               )}
@@ -684,7 +693,7 @@ function App() {
           <section className="welcome-banner-card">
             <div className="welcome-banner-content">
               <span className="welcome-tag-pill">PORTAL ACTIVE</span>
-              <h2>Welcome back, {user.name || user.email}! 👋</h2>
+              <h2>Welcome back, {user.name || user.email}!</h2>
               <p>
                 {isAdmin && activeTab === "ADMIN"
                   ? "Here is your administrative command center for organizational attendance and approvals."
@@ -768,21 +777,36 @@ function App() {
 
           <div className="hero-features-list">
             <div className="feature-item">
-              <span className="feature-icon">⚡</span>
+              <span className="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </span>
               <div>
                 <strong>Instant Approvals</strong>
                 <p>One-click approve or reject workflow for supervisors.</p>
               </div>
             </div>
             <div className="feature-item">
-              <span className="feature-icon">📅</span>
+              <span className="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </span>
               <div>
                 <strong>Smart Date Validation</strong>
                 <p>Prevents retroactive selections and inverted ranges.</p>
               </div>
             </div>
             <div className="feature-item">
-              <span className="feature-icon">🔒</span>
+              <span className="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </span>
               <div>
                 <strong>Secure Session Guard</strong>
                 <p>Enterprise JWT authentication with HttpOnly cookie protection.</p>

@@ -318,7 +318,13 @@ function AdminLeaveManagement() {
         </div>
       ) : filteredLeaves.length === 0 ? (
         <div className="admin-empty-card">
-          <div className="empty-circle-icon">🏢</div>
+          <div className="empty-circle-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
           <h3>No Leave Applications Found</h3>
           <p>
             {searchTerm || statusFilter !== "ALL" || typeFilter !== "ALL"
