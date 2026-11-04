@@ -324,6 +324,7 @@ function App() {
       const response = await fetch(`${API_URL}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
 
@@ -362,6 +363,9 @@ function App() {
       }
 
       localStorage.setItem("leaveUser", JSON.stringify(data));
+      if (data.token) {
+        localStorage.setItem("leaveToken", data.token);
+      }
 
       // Show "Login Successfully" Popup modal and proceed to Dashboard!
       setPopup({

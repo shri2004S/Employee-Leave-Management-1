@@ -19,18 +19,21 @@ function AdminLeaveManagement() {
     setLoading(true);
     setError("");
     const token = localStorage.getItem("leaveToken");
+    const user = localStorage.getItem("leaveUser");
 
-    if (!token) {
+    if (!token && !user) {
       setError("Admin session not found. Please log in.");
       setLoading(false);
       return;
     }
 
     try {
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(ADMIN_API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers,
       });
 
       if (!response.ok) {
@@ -66,12 +69,13 @@ function AdminLeaveManagement() {
     const token = localStorage.getItem("leaveToken");
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(`${ADMIN_API_URL}/${id}/status`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers,
         body: JSON.stringify({ status: newStatus }),
       });
 

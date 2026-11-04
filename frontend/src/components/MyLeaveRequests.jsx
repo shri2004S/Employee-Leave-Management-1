@@ -32,10 +32,15 @@ function MyLeaveRequests({ refreshTrigger }) {
   async function fetchLeaves() {
     setLoading(true);
     setError("");
+    const token = localStorage.getItem("leaveToken");
 
     try {
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(API_URL, {
         credentials: "include",
+        headers,
       });
 
       if (!response.ok) {
@@ -98,12 +103,13 @@ function MyLeaveRequests({ refreshTrigger }) {
     const token = localStorage.getItem("leaveToken");
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(`${API_URL}/${editingLeave.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers,
         body: JSON.stringify({
           leaveType: editLeaveType,
           fromDate: editFromDate,
@@ -140,11 +146,13 @@ function MyLeaveRequests({ refreshTrigger }) {
     const token = localStorage.getItem("leaveToken");
 
     try {
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
+        headers,
       });
 
       const data = await response.json().catch(() => ({}));

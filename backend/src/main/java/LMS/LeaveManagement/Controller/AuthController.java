@@ -43,7 +43,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(COOKIE_MAX_AGE)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
     }
 
@@ -53,7 +53,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
     }
 
@@ -74,8 +74,11 @@ public class AuthController {
 
         AuthResponse data = authService.register(request);
 
-        // Do not expose the JWT in the response body.
         return ResponseEntity.status(HttpStatus.CREATED)
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        createAuthCookie(data.token()).toString()
+                )
                 .body(userResponse(data));
     }
 

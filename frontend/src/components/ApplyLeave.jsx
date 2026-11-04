@@ -50,8 +50,9 @@ function ApplyLeave({ onLeaveSubmitted }) {
     }
 
     const token = localStorage.getItem("leaveToken");
+    const user = localStorage.getItem("leaveUser");
 
-    if (!token) {
+    if (!token && !user) {
       setMessageType("error");
       setMessage("Please log in again before applying for leave.");
       return;
@@ -60,14 +61,15 @@ function ApplyLeave({ onLeaveSubmitted }) {
     setLoading(true);
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(API_URL, {
-  method: "POST",
-  credentials: "include",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(leaveData),
-});
+        method: "POST",
+        credentials: "include",
+        headers,
+        body: JSON.stringify(leaveData),
+      });
 
       const data = await response.json().catch(() => ({}));
 
