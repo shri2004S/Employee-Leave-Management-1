@@ -776,14 +776,14 @@ function App() {
               ? "Forgot password?"
               : isLogin
               ? "Sign in"
-              : "Join LeaveHub"}
+              : "Register"}
           </h1>
           <p className="linkedin-card-subtitle">
             {isForgotPassword
               ? "Reset your password to regain access to your portal"
               : isLogin
               ? "Stay updated on your leave & attendance portal"
-              : "Stay updated on your leave balance & time off"}
+              : "Create your account to manage leave requests and balance"}
           </p>
 
           <form onSubmit={handleSubmit} noValidate className="linkedin-form">
@@ -914,34 +914,8 @@ function App() {
               ) : isLogin ? (
                 "Sign in"
               ) : (
-                "Agree & Join"
+                "Register"
               )}
-            </button>
-
-            {/* Divider */}
-            <div className="linkedin-divider">
-              <span>or</span>
-            </div>
-
-            {/* Quick Demo Fill Button (Secondary action) */}
-            <button
-              type="button"
-              className="linkedin-secondary-btn"
-              onClick={() => {
-                setForm({
-                  name: isLogin ? "" : "John Doe",
-                  email: "employee@settribe.com",
-                  password: "Password123",
-                  confirmPassword: "Password123",
-                });
-                setMessage({ type: "success", text: "Demo credentials filled! Click Sign in." });
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <span>Fill Demo Credentials</span>
             </button>
 
             {isForgotPassword && (
@@ -969,7 +943,7 @@ function App() {
             <p>
               New to LeaveHub?{" "}
               <button type="button" className="linkedin-join-link" onClick={() => switchMode(false)}>
-                Join now
+                Register
               </button>
             </p>
           ) : (
@@ -982,26 +956,6 @@ function App() {
           )}
         </div>
       </main>
-
-      {/* LinkedIn-style Clean Footer */}
-      <footer className="linkedin-footer">
-        <div className="linkedin-footer-content">
-          <div className="linkedin-footer-logo-row">
-            <span className="footer-logo-leave">Leave</span>
-            <span className="footer-logo-hub">Hub</span>
-            <span className="footer-copyright">© 2026</span>
-          </div>
-          <div className="linkedin-footer-links">
-            <a href="#agreement" onClick={(e) => e.preventDefault()}>User Agreement</a>
-            <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-            <a href="#guidelines" onClick={(e) => e.preventDefault()}>Community Guidelines</a>
-            <a href="#cookie" onClick={(e) => e.preventDefault()}>Cookie Policy</a>
-            <a href="#copyright" onClick={(e) => e.preventDefault()}>Copyright Policy</a>
-            <a href="#feedback" onClick={(e) => e.preventDefault()}>Send Feedback</a>
-            <span className="footer-lang-selector">Language ▾</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
