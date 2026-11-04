@@ -768,59 +768,12 @@ function App() {
           <span className="brand-title-text">LeaveHub</span>
         </div>
 
-        <div className="auth-hero-content">
-          <span className="hero-pill-tag">ENTERPRISE HR SOLUTION</span>
-          <h1>Manage Employee Absences & Leaves with Confidence</h1>
-          <p className="hero-description">
-            Experience a smooth, paperless leave application workflow with real-time approvals, live quota tracking, and role-based access control.
-          </p>
-
-          <div className="hero-features-list">
-            <div className="feature-item">
-              <span className="feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                </svg>
-              </span>
-              <div>
-                <strong>Instant Approvals</strong>
-                <p>One-click approve or reject workflow for supervisors.</p>
-              </div>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-              </span>
-              <div>
-                <strong>Smart Date Validation</strong>
-                <p>Prevents retroactive selections and inverted ranges.</p>
-              </div>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-              </span>
-              <div>
-                <strong>Secure Session Guard</strong>
-                <p>Enterprise JWT authentication with HttpOnly cookie protection.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="illustration-wrapper">
-            <img
-              src={illustration}
-              alt="Leave Management Illustration"
-              className="auth-hero-illustration"
-            />
-          </div>
+        <div className="auth-illustration-center-container">
+          <img
+            src={illustration}
+            alt="Leave Management Illustration"
+            className="auth-hero-illustration"
+          />
         </div>
       </section>
 

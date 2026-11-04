@@ -64,102 +64,28 @@
   color: #ffffff;
 }
 
-.auth-hero-content {
-  margin: auto 0;
-  max-width: 540px;
+/* Centered illustration container below the logo */
+.auth-illustration-center-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
   z-index: 1;
 }
 
-.hero-pill-tag {
-  display: inline-block;
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #bfdbfe;
-  margin-bottom: 20px;
-  backdrop-filter: blur(8px);
-}
-
-.auth-hero-content h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  color: #ffffff;
-  margin-bottom: 18px;
-}
-
-.hero-description {
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: #dbeafe;
-  margin-bottom: 32px;
-}
-
-/* Feature bullets */
-.hero-features-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 36px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 14px 18px;
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-  transition: transform 0.2s ease;
-}
-
-.feature-item:hover {
-  transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.feature-icon {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.feature-item strong {
-  display: block;
-  font-size: 0.95rem;
-  color: #ffffff;
-  margin-bottom: 2px;
-}
-
-.feature-item p {
-  font-size: 0.85rem;
-  color: #bfdbfe;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.illustration-wrapper {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  padding: 20px;
-  text-align: center;
-  backdrop-filter: blur(8px);
-  max-width: 480px;
-}
-
 .auth-hero-illustration {
-  max-width: 100%;
-  max-height: 280px;
+  max-width: 90%;
+  max-height: 520px;
+  width: auto;
+  height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.28));
+  transition: transform 0.3s ease;
+}
+
+.auth-hero-illustration:hover {
+  transform: scale(1.02);
 }
 
 /* Right Form Panel */
@@ -999,20 +925,16 @@
   }
 
   .auth-brand-panel {
-    padding: 36px 32px;
+    padding: 32px 24px 20px;
     flex: none;
   }
 
-  .hero-features-list {
-    display: none;
+  .auth-illustration-center-container {
+    padding: 20px 0;
   }
 
-  .illustration-wrapper {
-    display: none;
-  }
-
-  .auth-hero-content h1 {
-    font-size: 2rem;
+  .auth-hero-illustration {
+    max-height: 240px;
   }
 
   .dashboard-main-wrapper {
