@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ApplyLeave from "./components/ApplyLeave";
 import MyLeaveRequests from "./components/MyLeaveRequests";
 import AdminLeaveManagement from "./components/AdminLeaveManagement";
@@ -11,16 +11,6 @@ import "./App.css";
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
 const NAME_REGEX = /^[A-Za-z\s.'-]+$/;
-
-const response = await fetch(`${API_URL}/${endpoint}`, {
-  method: "POST",
-  credentials: "include",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(body),
-});
-
 
 const LIMITS = {
   NAME_MIN: 3,

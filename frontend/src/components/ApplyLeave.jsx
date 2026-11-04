@@ -58,6 +58,13 @@ function ApplyLeave({ onLeaveSubmitted }) {
       return;
     }
 
+    const leaveData = {
+      leaveType,
+      fromDate,
+      toDate,
+      reason: reason.trim(),
+    };
+
     setLoading(true);
 
     try {
