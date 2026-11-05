@@ -1,7 +1,7 @@
-
 package LMS.LeaveManagement.service;
 
 import LMS.LeaveManagement.dto.AuthResponse;
+import LMS.LeaveManagement.dto.ForgotPasswordRequest;
 import LMS.LeaveManagement.dto.LoginRequest;
 import LMS.LeaveManagement.dto.RegisterRequest;
 import LMS.LeaveManagement.entity.User;
@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -95,4 +97,35 @@ public class AuthService {
                 token, "Bearer", user.getId(),
                 user.getName(), user.getEmail(), user.getRole());
     }
+
+    @Transactional
+    public Map<String, String> resetPassword(ForgotPasswordRequest request) {
+        String email = request.email().trim().toLowerCase();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No account found with this email address. Please check and try again."));
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        return Map.of("message", "Password reset successfully. Please login with your new password.");
+    }
+
+    @Transactional(readOnly = true)
+public Map<String, Object> getCurrentUser(String email) {
+
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "User not found"));
+
+    return Map.of(
+            "userId", user.getId(),
+            "name", user.getName(),
+            "email", user.getEmail(),
+            "role", user.getRole()
+    );
+}
 }

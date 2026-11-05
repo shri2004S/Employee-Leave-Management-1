@@ -45,33 +45,37 @@ function ApplyLeave({ onLeaveSubmitted }) {
 
     if (!reason.trim()) {
       setMessageType("error");
-      setMessage("Please enter a reason for your leave.");
+      setMessage("Please enter a reason for your leave request.");
       return;
     }
 
     const token = localStorage.getItem("leaveToken");
+    const user = localStorage.getItem("leaveUser");
 
-    if (!token) {
+    if (!token && !user) {
       setMessageType("error");
       setMessage("Please log in again before applying for leave.");
       return;
     }
 
+    const leaveData = {
+      leaveType,
+      fromDate,
+      toDate,
+      reason: reason.trim(),
+    };
+
     setLoading(true);
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(API_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          leaveType,
-          fromDate,
-          toDate,
-          reason: reason.trim(),
-        }),
+        credentials: "include",
+        headers,
+        body: JSON.stringify(leaveData),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -85,7 +89,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
       }
 
       setMessageType("success");
-      setMessage("Leave request submitted successfully!");
+      setMessage("Leave request submitted successfully! Your application is now PENDING review.");
       setLeaveType("CASUAL");
       setFromDate("");
       setToDate("");
@@ -105,108 +109,221 @@ function ApplyLeave({ onLeaveSubmitted }) {
     }
   }
 
+  const leaveTypeOptions = [
+    { value: "CASUAL", label: "Casual Leave", desc: "Short personal time off" },
+    { value: "SICK", label: "Sick Leave", desc: "Medical or health recovery" },
+    { value: "EARNED", label: "Earned Leave", desc: "Annual accrued vacation" },
+    { value: "OTHER", label: "Other / Special", desc: "Special circumstances" },
+  ];
+
+  const renderCategoryLogo = (type) => {
+    switch (type) {
+      case "CASUAL":
+        return (
+          <div className="type-pill-icon-box casual">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+        );
+      case "SICK":
+        return (
+          <div className="type-pill-icon-box sick">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+          </div>
+        );
+      case "EARNED":
+        return (
+          <div className="type-pill-icon-box earned">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="7"></circle>
+              <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+            </svg>
+          </div>
+        );
+      case "OTHER":
+      default:
+        return (
+          <div className="type-pill-icon-box other">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+        );
+    }
+  };
+
   return (
-    <section className="apply-leave-card">
-      <div className="apply-leave-heading">
-        <div>
-          <p className="apply-leave-eyebrow">LEAVE MANAGEMENT</p>
+    <section className="apply-leave-card-panel">
+      {/* Card Header */}
+      <div className="card-top-header">
+        <div className="header-text-block">
+          <span className="card-eyebrow-pill">REQUEST ABSENCE</span>
           <h2>Apply for Leave</h2>
-          <p className="apply-leave-subtitle">
-            Fill in the details below to submit your leave request.
+          <p className="card-subtitle-desc">
+            Complete the form below to request time off. Your manager will be notified for review.
           </p>
         </div>
-        <div className="leave-heading-icon" aria-hidden="true">📅</div>
+
+        <div className="card-icon-badge" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="leave-form-grid">
-          <div className="leave-field">
-            <label htmlFor="leaveType">Leave type</label>
-            <select
-              id="leaveType"
-              value={leaveType}
-              onChange={(event) => setLeaveType(event.target.value)}
-              required
-            >
-              <option value="CASUAL">Casual Leave</option>
-              <option value="SICK">Sick Leave</option>
-              <option value="EARNED">Earned Leave</option>
-              <option value="OTHER">Other</option>
-            </select>
+      <form onSubmit={handleSubmit} className="apply-form-container">
+        {/* Leave Type Selector with Interactive Cards */}
+        <div className="form-section-block">
+          <label className="section-field-label">Select Leave Category</label>
+          <div className="type-pills-grid">
+            {leaveTypeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`type-pill-card ${leaveType === opt.value ? "selected" : ""}`}
+                onClick={() => setLeaveType(opt.value)}
+              >
+                {renderCategoryLogo(opt.value)}
+                <div className="type-pill-text">
+                  <strong>{opt.label}</strong>
+                  <small>{opt.desc}</small>
+                </div>
+              </button>
+            ))}
           </div>
 
-          <div className="leave-field">
-            <label htmlFor="fromDate">Start date</label>
-            <input
-              id="fromDate"
-              type="date"
-              min={localToday}
-              value={fromDate}
-              onChange={(event) => {
-                setFromDate(event.target.value);
-                if (toDate && event.target.value > toDate) setToDate("");
-              }}
-              required
-            />
-          </div>
+          {/* Accessible hidden select for screen readers / fallbacks */}
+          <select
+            id="leaveType"
+            value={leaveType}
+            onChange={(e) => setLeaveType(e.target.value)}
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden="true"
+          >
+            {leaveTypeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          <div className="leave-field">
-            <label htmlFor="toDate">End date</label>
-            <input
-              id="toDate"
-              type="date"
-              min={fromDate || localToday}
-              value={toDate}
-              onChange={(event) => setToDate(event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="leave-days-preview">
-            <span className="leave-days-icon">⏱️</span>
-            <div>
-              <span className="leave-days-label">Total leave duration</span>
-              <strong>
-                {leaveDays} {leaveDays === 1 ? "day" : "days"}
-              </strong>
+        {/* Date Fields & Duration Preview */}
+        <div className="dates-duration-grid">
+          <div className="field-box">
+            <label htmlFor="fromDate">
+              Start Date <span className="req-star">*</span>
+            </label>
+            <div className="date-input-wrap">
+              <input
+                id="fromDate"
+                type="date"
+                min={localToday}
+                value={fromDate}
+                onChange={(event) => {
+                  setFromDate(event.target.value);
+                  if (toDate && event.target.value > toDate) setToDate("");
+                }}
+                required
+              />
             </div>
           </div>
 
-          <div className="leave-field leave-reason-field">
-            <label htmlFor="reason">Reason for leave</label>
-            <textarea
-              id="reason"
-              rows="4"
-              maxLength="500"
-              placeholder="Please explain why you need leave..."
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              required
-            />
-            <span className="leave-character-count">
-              {reason.length}/500 characters
-            </span>
+          <div className="field-box">
+            <label htmlFor="toDate">
+              End Date <span className="req-star">*</span>
+            </label>
+            <div className="date-input-wrap">
+              <input
+                id="toDate"
+                type="date"
+                min={fromDate || localToday}
+                value={toDate}
+                onChange={(event) => setToDate(event.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Duration Card */}
+          <div className="duration-preview-card">
+            <div className="duration-icon-box">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div className="duration-text-group">
+              <span className="duration-sub-label">Total Duration</span>
+              <span className="duration-days-count">
+                {leaveDays} {leaveDays === 1 ? "Day" : "Days"}
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* Reason Field */}
+        <div className="field-box">
+          <div className="label-with-counter">
+            <label htmlFor="reason">
+              Reason for Absence <span className="req-star">*</span>
+            </label>
+            <span className="char-counter">{reason.length} / 500 characters</span>
+          </div>
+          <textarea
+            id="reason"
+            rows="3"
+            maxLength="500"
+            placeholder="Please detail your reason for leave (e.g. personal family event, medical appointment)..."
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            required
+          />
+        </div>
+
+        {/* Feedback Alert */}
         {message && (
-          <div
-            className={`leave-message ${messageType}`}
-            role="status"
-            aria-live="polite"
-          >
-            {message}
+          <div className={`apply-alert-banner ${messageType}`} role="status" aria-live="polite">
+            <span className="alert-icon-sym">{messageType === "success" ? "✓" : "⚠"}</span>
+            <span>{message}</span>
           </div>
         )}
 
-        <div className="leave-form-footer">
-          <p>Your request will be submitted for approval with PENDING status.</p>
-          <button
-            className="leave-submit-button"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? "Submitting..." : "Submit Leave Request →"}
+        {/* Card Footer Actions */}
+        <div className="card-form-footer">
+          <div className="footer-status-hint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>Submissions will appear in your requests table immediately as <strong>PENDING</strong>.</span>
+          </div>
+
+          <button className="apply-submit-btn" type="submit" disabled={loading}>
+            {loading ? (
+              <span className="loading-state-flex">
+                <span className="btn-spinner"></span>
+                Submitting Request...
+              </span>
+            ) : (
+              <>
+                <span>Submit Leave Application</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </>
+            )}
           </button>
         </div>
       </form>

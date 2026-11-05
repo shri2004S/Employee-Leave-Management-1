@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Employee Leave Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="logo-badge">L</div>
+      <h2>Welcome Back</h2>
+      <p>Sign in with your credentials to access dashboard</p>
+    </div>
+
+    <!-- General Error Alert Banner -->
+    <div class="alert-box alert-error" id="loginAlert"></div>
+
+    <!-- Login Form -->
+    <form id="loginForm" novalidate>
+
+      <!-- Field 1: Email Address -->
+      <div class="form-group">
+        <label for="loginEmail">Email Address</label>
+        <input 
+          type="email" 
+          id="loginEmail" 
+          placeholder="name@example.com" 
+          autocomplete="email"
+        >
+        <span class="error-msg" id="loginEmailError"></span>
+      </div>
+
+      <!-- Field 2: Password -->
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label for="loginPassword" style="margin-bottom: 0;">Password</label>
+          <a href="forgot-password.html" style="color: #2563eb; font-size: 0.82rem; text-decoration: none; font-weight: 600;">Forgot password?</a>
+        </div>
+        <input 
+          type="password" 
+          id="loginPassword" 
+          placeholder="Enter your password"
+          autocomplete="current-password"
+        >
+        <span class="error-msg" id="loginPasswordError"></span>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-primary" id="loginBtn">
+        Sign In →
+      </button>
+
+      <!-- Switch to Register -->
+      <div class="auth-footer">
+        Don't have an account? <a href="register.html">Register here</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       JavaScript Success Popup Modal: "Login Successfully"
+       ========================================================================= -->
+  <div class="popup-overlay" id="loginSuccessPopup">
+    <div class="popup-box">
+      <div class="popup-icon-circle">✓</div>
+      <h3 class="popup-title">Login Successfully!</h3>
+      <p class="popup-message" id="loginSuccessMessage">
+        Welcome back! Loading your employee dashboard...
+      </p>
+      <button type="button" class="popup-btn" id="popupDashboardBtn">
+        Open Dashboard →
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // JavaScript Login Authentication Logic
+    // =========================================================================
+
+    // 1. DOM Element References
+    const loginForm = document.getElementById("loginForm");
+    const loginEmailInput = document.getElementById("loginEmail");
+    const loginPasswordInput = document.getElementById("loginPassword");
+
+    const loginEmailError = document.getElementById("loginEmailError");
+    const loginPasswordError = document.getElementById("loginPasswordError");
+    const loginAlert = document.getElementById("loginAlert");
+
+    const loginSuccessPopup = document.getElementById("loginSuccessPopup");
+    const loginSuccessMessage = document.getElementById("loginSuccessMessage");
+    const popupDashboardBtn = document.getElementById("popupDashboardBtn");
+
+    // 2. Helper Functions
+    function clearLoginErrors() {
+      loginEmailError.textContent = "";
+      loginPasswordError.textContent = "";
+      loginAlert.style.display = "none";
+      loginAlert.textContent = "";
+    }
+
+    // Email format validation
+    function validateLoginEmail(email) {
+      const trimmed = email.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!trimmed) {
+        return "Email address is required.";
+      }
+      if (!emailRegex.test(trimmed)) {
+        return "Please enter a valid email format.";
+      }
+      return "";
+    }
+
+    // Password required validation
+    function validateLoginPassword(password) {
+      if (!password) {
+        return "Password is required.";
+      }
+      return "";
+    }
+
+    // =========================================================================
+    // 3. Login Form Submit Event Listener
+    // =========================================================================
+    loginForm.addEventListener("submit", function(event) {
+      // Step A: Prevent default page reload
+      event.preventDefault();
+
+      // Step B: Clear any previous error messages
+      clearLoginErrors();
+
+      const email = loginEmailInput.value.trim();
+      const password = loginPasswordInput.value;
+
+      // Step C: Validate input fields
+      const emailErr = validateLoginEmail(email);
+      const passErr = validateLoginPassword(password);
+
+      let hasError = false;
+
+      if (emailErr) {
+        loginEmailError.textContent = emailErr;
+        hasError = true;
+      }
+      if (passErr) {
+        loginPasswordError.textContent = passErr;
+        hasError = true;
+      }
+
+      if (hasError) {
+        return; // Stop if required fields are missing/invalid
+      }
+
+      // Step D: Retrieve registered users from localStorage
+      const usersData = localStorage.getItem("users");
+      const users = usersData ? JSON.parse(usersData) : [];
+
+      // Step E: Check if user exists with matching email and password
+      const matchedUser = users.find(
+        user => user.email.toLowerCase() === email.toLowerCase() && user.password === password
+      );
+
+      // Step F: If credentials do not match, show error message
+      if (!matchedUser) {
+        loginAlert.textContent = "Invalid Email or Password";
+        loginAlert.style.display = "block";
+        return;
+      }
+
+      // =======================================================================
+      // Step G: Login Successful!
+      // Store user session in localStorage as 'loggedInUser'
+      // =======================================================================
+      const sessionUser = {
+        name: matchedUser.name,
+        email: matchedUser.email,
+        loginTime: new Date().toLocaleString()
+      };
+
+      localStorage.setItem("loggedInUser", JSON.stringify(sessionUser));
+
+      // =======================================================================
+      // Step H: JAVASCRIPT POPUP NOTIFICATION: "Login Successfully"
+      // Shows animated popup modal on screen, then redirects to dashboard.html
+      // (Also triggers alert fallback for test specifications)
+      // =======================================================================
+      loginSuccessMessage.textContent = `Welcome back, ${matchedUser.name}! Your session is active. Opening dashboard...`;
+      loginSuccessPopup.classList.add("active");
+
+      function redirectToDashboard() {
+        window.location.href = "dashboard.html";
+      }
+
+      // Allow clicking the popup button
+      popupDashboardBtn.addEventListener("click", redirectToDashboard);
+
+      // Optional native alert popup + auto-redirect after short delay
+      setTimeout(() => {
+        alert("Login successfully! Welcome, " + matchedUser.name);
+        redirectToDashboard();
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>

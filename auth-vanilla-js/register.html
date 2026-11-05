@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Employee Leave Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="logo-badge">L</div>
+      <h2>Create Account</h2>
+      <p>Register as an employee to get started</p>
+    </div>
+
+    <!-- Registration Form -->
+    <form id="registerForm" novalidate>
+      
+      <!-- Field 1: Full Name (Letters Only - No Numbers Allowed) -->
+      <div class="form-group">
+        <label for="name">Full Name (Letters Only)</label>
+        <input 
+          type="text" 
+          id="name" 
+          placeholder="Enter your full name (letters only)" 
+          autocomplete="name"
+        >
+        <!-- Red error message placeholder -->
+        <span class="error-msg" id="nameError"></span>
+      </div>
+
+      <!-- Field 2: Email Address -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          placeholder="name@example.com" 
+          autocomplete="email"
+        >
+        <span class="error-msg" id="emailError"></span>
+      </div>
+
+      <!-- Field 3: Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="At least 6 chars, 1 uppercase, 1 number"
+          autocomplete="new-password"
+        >
+        <span class="error-msg" id="passwordError"></span>
+      </div>
+
+      <!-- Field 4: Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          placeholder="Re-enter your password"
+          autocomplete="new-password"
+        >
+        <span class="error-msg" id="confirmPasswordError"></span>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-primary" id="registerBtn">
+        Create Account →
+      </button>
+
+      <!-- Switch to Login -->
+      <div class="auth-footer">
+        Already have an account? <a href="login.html">Login here</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       JavaScript Success Popup Modal: "Registered Successfully"
+       ========================================================================= -->
+  <div class="popup-overlay" id="registerSuccessPopup">
+    <div class="popup-box">
+      <div class="popup-icon-circle">✓</div>
+      <h3 class="popup-title">Registered Successfully!</h3>
+      <p class="popup-message">
+        Your employee account has been created. Please sign in with your credentials to access the dashboard.
+      </p>
+      <button type="button" class="popup-btn" id="popupLoginBtn">
+        Go to Login →
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // JavaScript Form Validation & Registration Logic
+    // =========================================================================
+
+    // 1. DOM Element References
+    const registerForm = document.getElementById("registerForm");
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+
+    const nameError = document.getElementById("nameError");
+    const emailError = document.getElementById("emailError");
+    const passwordError = document.getElementById("passwordError");
+    const confirmPasswordError = document.getElementById("confirmPasswordError");
+
+    const registerSuccessPopup = document.getElementById("registerSuccessPopup");
+    const popupLoginBtn = document.getElementById("popupLoginBtn");
+
+    // =========================================================================
+    // REAL-TIME INPUT FILTER: Disallow numbers in Name field
+    // Strip numbers and special symbols on typing/pasting immediately!
+    // =========================================================================
+    nameInput.addEventListener("input", function() {
+      // Remove any digits or disallowed characters immediately as user types
+      const filtered = this.value.replace(/[^A-Za-z\s]/g, "");
+      if (this.value !== filtered) {
+        this.value = filtered;
+        nameError.textContent = "Numbers and special characters are not allowed in name.";
+      } else {
+        nameError.textContent = "";
+      }
+    });
+
+    // 2. Reusable Helper Functions
+    // Clears all existing error messages
+    function clearErrors() {
+      nameError.textContent = "";
+      emailError.textContent = "";
+      passwordError.textContent = "";
+      confirmPasswordError.textContent = "";
+    }
+
+    // Fetches the list of all registered users from localStorage
+    function getStoredUsers() {
+      const usersData = localStorage.getItem("users");
+      return usersData ? JSON.parse(usersData) : [];
+    }
+
+    // =========================================================================
+    // 3. Reusable Field Validation Functions
+    // =========================================================================
+
+    // Validate Name: min 3 letters, STRICTLY alphabets and spaces only (NO numbers)
+    function validateName(name) {
+      const trimmed = name.trim();
+      const nameRegex = /^[A-Za-z\s]+$/;
+
+      if (!trimmed) {
+        return "Full name is required.";
+      }
+      if (/\d/.test(name)) {
+        return "Numbers are not allowed in name. Only letters and spaces.";
+      }
+      if (trimmed.length < 3) {
+        return "Name must be at least 3 characters long.";
+      }
+      if (!nameRegex.test(trimmed)) {
+        return "Name must contain only alphabets and spaces.";
+      }
+      return ""; // Valid
+    }
+
+    // Validate Email: valid format regex + duplicate check
+    function validateEmail(email, existingUsers) {
+      const trimmed = email.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!trimmed) {
+        return "Email address is required.";
+      }
+      if (!emailRegex.test(trimmed)) {
+        return "Please enter a valid email address.";
+      }
+      
+      // Check for duplicate email in localStorage users array
+      const isDuplicate = existingUsers.some(
+        user => user.email.toLowerCase() === trimmed.toLowerCase()
+      );
+      if (isDuplicate) {
+        return "This email is already registered. Please login.";
+      }
+      return ""; // Valid
+    }
+
+    // Validate Password: min 6 chars, at least 1 uppercase, at least 1 number
+    function validatePassword(password) {
+      if (!password) {
+        return "Password is required.";
+      }
+      if (password.length < 6) {
+        return "Password must be at least 6 characters long.";
+      }
+      if (!/[A-Z]/.test(password)) {
+        return "Password must contain at least 1 uppercase letter.";
+      }
+      if (!/[0-9]/.test(password)) {
+        return "Password must contain at least 1 number.";
+      }
+      return ""; // Valid
+    }
+
+    // Validate Confirm Password: must match password
+    function validateConfirmPassword(password, confirmPassword) {
+      if (!confirmPassword) {
+        return "Please confirm your password.";
+      }
+      if (password !== confirmPassword) {
+        return "Passwords do not match.";
+      }
+      return ""; // Valid
+    }
+
+    // =========================================================================
+    // 4. Form Submit Event Listener
+    // =========================================================================
+    registerForm.addEventListener("submit", function(event) {
+      // Step A: Stop normal browser form submission
+      event.preventDefault();
+
+      // Step B: Clear any previous error messages
+      clearErrors();
+
+      // Step C: Retrieve current field values
+      const name = nameInput.value;
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      // Step D: Get existing users from localStorage
+      const users = getStoredUsers();
+
+      // Step E: Run validation functions on each field
+      const nameErr = validateName(name);
+      const emailErr = validateEmail(email, users);
+      const passErr = validatePassword(password);
+      const confirmPassErr = validateConfirmPassword(password, confirmPassword);
+
+      // Step F: Display errors below invalid fields
+      let hasError = false;
+
+      if (nameErr) {
+        nameError.textContent = nameErr;
+        hasError = true;
+      }
+      if (emailErr) {
+        emailError.textContent = emailErr;
+        hasError = true;
+      }
+      if (passErr) {
+        passwordError.textContent = passErr;
+        hasError = true;
+      }
+      if (confirmPassErr) {
+        confirmPasswordError.textContent = confirmPassErr;
+        hasError = true;
+      }
+
+      // Step G: If any validation failed, stop execution
+      if (hasError) {
+        return;
+      }
+
+      // =======================================================================
+      // Step H: All fields are valid! Save user to localStorage
+      // =======================================================================
+      const newUser = {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password: password, // Stored locally
+        registeredAt: new Date().toISOString()
+      };
+
+      // Add new user to array and save in localStorage
+      users.push(newUser);
+      localStorage.setItem("users", JSON.stringify(users));
+
+      // =======================================================================
+      // Step I: JAVASCRIPT POPUP NOTIFICATION: "Register Successfully"
+      // Shows animated popup modal on screen, then redirects to login.html
+      // (Also triggers alert fallback for test specifications)
+      // =======================================================================
+      registerSuccessPopup.classList.add("active");
+
+      function redirectToLogin() {
+        window.location.href = "login.html";
+      }
+
+      // Allow clicking the popup button
+      popupLoginBtn.addEventListener("click", redirectToLogin);
+
+      // Optional native alert popup + auto-redirect after short delay
+      setTimeout(() => {
+        alert("Registered successfully, please login");
+        redirectToLogin();
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>

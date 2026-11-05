@@ -1,237 +1,457 @@
+/* =========================================================
+   Employee Leave Management System - ApplyLeave.css
+   Modern HR Blue & White Theme Form Styles
+   ========================================================= */
 
-.apply-leave-card {
-  width: 100%;
-  margin-top: 28px;
-  padding: 30px;
-  border: 1px solid #e3eaf4;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 8px 28px rgba(31, 64, 104, 0.05);
+.apply-leave-card-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 32px 36px;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -2px rgba(15, 23, 42, 0.03);
+  transition: box-shadow 0.2s ease;
 }
 
-.apply-leave-heading {
+.apply-leave-card-panel:hover {
+  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+}
+
+/* Card Header */
+.card-top-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 24px;
-  margin-bottom: 25px;
-  border-bottom: 1px solid #edf1f7;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.apply-leave-eyebrow {
-  margin: 0 0 9px;
-  color: #2473c6;
-  font-size: 11px;
+.card-eyebrow-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 9999px;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 1.6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+  margin-bottom: 8px;
 }
 
-.apply-leave-heading h2 {
-  margin: 0 0 9px;
-  color: #172b49;
-  font-size: 25px;
+.card-top-header h2 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
 }
 
-.apply-leave-subtitle {
-  margin: 0;
-  color: #7b8799;
-  font-size: 13px;
-  line-height: 1.7;
+.card-subtitle-desc {
+  font-size: 0.92rem;
+  color: #64748b;
+  line-height: 1.45;
 }
 
-.leave-heading-icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 50px;
-  height: 50px;
-  border-radius: 13px;
-  background: #eaf3ff;
-  font-size: 24px;
-}
-
-.leave-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 23px 20px;
-}
-
-.leave-field {
-  min-width: 0;
-}
-
-.leave-field label {
-  display: block;
-  margin-bottom: 9px;
-  color: #34445d;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.leave-field input,
-.leave-field select,
-.leave-field textarea {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  border: 1px solid #dbe4f0;
-  border-radius: 9px;
-  padding: 13px 14px;
-  outline: none;
-  background: #fbfcfe;
-  color: #253650;
-  font: inherit;
-  font-size: 13px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.leave-field input,
-.leave-field select {
-  min-height: 46px;
-}
-
-.leave-field textarea {
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.leave-field input:focus,
-.leave-field select:focus,
-.leave-field textarea:focus {
-  border-color: #287bd0;
-  box-shadow: 0 0 0 3px rgba(40, 123, 208, 0.1);
-}
-
-.leave-days-preview {
+.card-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  color: #2563eb;
   display: flex;
   align-items: center;
-  gap: 13px;
-  min-height: 72px;
-  padding: 12px 16px;
-  border: 1px solid #d9e9ff;
-  border-radius: 10px;
-  background: #f1f7ff;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.leave-days-icon {
+/* Form Container */
+.apply-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-field-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Category Pills Grid */
+.type-pills-grid {
   display: grid;
-  place-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.type-pill-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.type-pill-card:hover {
+  background: #ffffff;
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.type-pill-card.selected {
+  background: #eff6ff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14);
+}
+
+.type-pill-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.type-pill-icon-box.casual {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+.type-pill-icon-box.sick {
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  color: #9333ea;
+}
+
+.type-pill-icon-box.earned {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #d97706;
+}
+
+.type-pill-icon-box.other {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.type-pill-card.selected .type-pill-icon-box.casual {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.type-pill-card.selected .type-pill-icon-box.sick {
+  background: #9333ea;
+  color: #ffffff;
+  border-color: #7e22ce;
+  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+}
+
+.type-pill-card.selected .type-pill-icon-box.earned {
+  background: #d97706;
+  color: #ffffff;
+  border-color: #b45309;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.type-pill-card.selected .type-pill-icon-box.other {
+  background: #475569;
+  color: #ffffff;
+  border-color: #334155;
+  box-shadow: 0 2px 8px rgba(71, 85, 105, 0.3);
+}
+
+.type-pill-text strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.type-pill-card.selected .type-pill-text strong {
+  color: #1d4ed8;
+}
+
+.type-pill-text small {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+/* Dates & Duration Grid */
+.dates-duration-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 18px;
+  align-items: flex-end;
+}
+
+.field-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-box label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.req-star {
+  color: #ef4444;
+}
+
+.date-input-wrap input {
+  width: 100%;
+  padding: 11px 14px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  color: #0f172a;
+  transition: all 0.2s ease;
+}
+
+.date-input-wrap input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Duration Preview Card */
+.duration-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 18px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  min-height: 48px;
+}
+
+.duration-icon-box {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  color: #1767b1;
-  background: #deecff;
-  font-size: 23px;
-}
-
-.leave-days-label {
-  display: block;
-  margin-bottom: 5px;
-  color: #66758b;
-  font-size: 11px;
-}
-
-.leave-days-preview strong {
-  color: #1559a6;
-  font-size: 17px;
-}
-
-.leave-reason-field {
-  grid-column: 1 / -1;
-}
-
-.leave-character-count {
-  display: block;
-  margin-top: 7px;
-  color: #8b96a7;
-  text-align: right;
-  font-size: 11px;
-}
-
-.leave-message {
-  margin-top: 22px;
-  padding: 13px 15px;
-  border-radius: 9px;
-  overflow-wrap: anywhere;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.leave-message.success {
-  color: #176c43;
-  background: #e9f8ef;
-  border: 1px solid #c9efd7;
-}
-
-.leave-message.error {
-  color: #a42d36;
-  background: #fff0f0;
-  border: 1px solid #f6d0d3;
-}
-
-.leave-form-footer {
+  background: #ffffff;
+  color: #2563eb;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-top: 26px;
-  padding-top: 22px;
-  border-top: 1px solid #edf1f7;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
 }
 
-.leave-form-footer p {
-  margin: 0;
-  color: #7b8799;
-  font-size: 12px;
-  line-height: 1.6;
+.duration-text-group {
+  display: flex;
+  flex-direction: column;
 }
 
-.leave-submit-button {
-  border: 0;
-  border-radius: 9px;
-  padding: 14px 19px;
-  background: #1767b1;
-  color: white;
-  font-size: 13px;
+.duration-sub-label {
+  font-size: 0.72rem;
   font-weight: 700;
-  transition: background 0.2s;
+  color: #1e40af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.leave-submit-button:hover {
-  background: #105493;
+.duration-days-count {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
-.leave-submit-button:disabled {
+/* Reason Field */
+.label-with-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-counter {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.field-box textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  resize: vertical;
+  min-height: 90px;
+  transition: all 0.2s ease;
+}
+
+.field-box textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Feedback Alert Banner */
+.apply-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: slideFadeIn 0.2s ease;
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.apply-alert-banner.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.apply-alert-banner.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.alert-icon-sym {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* Card Footer Actions */
+.card-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.footer-status-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.footer-status-hint svg {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.apply-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 26px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.apply-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+.apply-submit-btn:disabled {
   opacity: 0.65;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
-@media (max-width: 650px) {
-  .apply-leave-card {
-    padding: 20px 16px;
+.loading-state-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .apply-leave-card-panel {
+    padding: 24px 20px;
   }
 
-  .apply-leave-heading h2 {
-    font-size: 22px;
-  }
-
-  .leave-form-grid {
+  .dates-duration-grid {
     grid-template-columns: 1fr;
-    gap: 19px;
+    gap: 14px;
   }
 
-  .leave-reason-field {
-    grid-column: auto;
-  }
-
-  .leave-form-footer {
+  .card-form-footer {
+    flex-direction: column-reverse;
     align-items: stretch;
-    flex-direction: column;
   }
 
-  .leave-submit-button {
+  .apply-submit-btn {
     width: 100%;
+    justify-content: center;
   }
 }
