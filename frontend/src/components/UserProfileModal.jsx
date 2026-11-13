@@ -211,3 +211,4 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
     </div>
   );
 }
+
