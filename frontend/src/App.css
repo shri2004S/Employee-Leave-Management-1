@@ -816,6 +816,26 @@
   margin-bottom: 12px;
 }
 
+.user-profile-card.clickable {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-profile-card.clickable:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
+}
+
+.profile-card-action-hint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #2563eb;
+  margin-top: 2px;
+  display: inline-block;
+}
+
 .avatar-circle {
   width: 40px;
   height: 40px;
@@ -927,6 +947,70 @@
   display: flex;
   align-items: center;
   gap: 14px;
+}
+
+.topbar-profile-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.topbar-profile-trigger-btn:hover {
+  background: #f8fafc;
+  border-color: #bfdbfe;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
+}
+
+.topbar-avatar-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar-profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.topbar-profile-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.topbar-role-tag {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.topbar-role-tag.admin {
+  color: #b91c1c;
+}
+
+.topbar-role-tag.employee {
+  color: #2563eb;
 }
 
 .date-badge {

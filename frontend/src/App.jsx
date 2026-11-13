@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ApplyLeave from "./components/ApplyLeave";
 import MyLeaveRequests from "./components/MyLeaveRequests";
 import AdminLeaveManagement from "./components/AdminLeaveManagement";
+import UserProfileModal from "./components/UserProfileModal";
 import illustration from "./assets/login.png";
 import "./App.css";
 
@@ -128,6 +129,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("EMPLOYEE"); // "EMPLOYEE" or "ADMIN"
   const [user, setUser] = useState(loadSavedUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     async function verifySession() {
@@ -483,9 +485,15 @@ function App() {
             </div>
           </div>
 
-          <div className="mobile-avatar-pill">
+          <button
+            className="mobile-avatar-pill"
+            onClick={() => setShowProfileModal(true)}
+            title="View Profile Details"
+            aria-label="View Profile Details"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          >
             <span className="avatar-circle-sm">{initials}</span>
-          </div>
+          </button>
         </header>
 
         {/* Sidebar Overlay for Mobile */}
@@ -595,19 +603,48 @@ function App() {
                 </svg>
                 <span>My Requests History</span>
               </a>
+
+              <button
+                className={`sidebar-nav-item ${showProfileModal ? "active" : ""}`}
+                onClick={() => {
+                  setShowProfileModal(true);
+                  setIsSidebarOpen(false);
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>My Profile</span>
+              </button>
             </nav>
           </div>
 
           {/* User Profile Card at bottom of sidebar */}
           <div className="sidebar-user-footer">
-            <div className="user-profile-card">
+            <div
+              className="user-profile-card clickable"
+              onClick={() => setShowProfileModal(true)}
+              title="Click to view full profile details"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setShowProfileModal(true);
+                }
+              }}
+            >
               <div className="avatar-circle">{initials}</div>
               <div className="user-info-text">
                 <p className="user-name-label">{user.name || "Employee"}</p>
                 <p className="user-email-label">{user.email}</p>
-                <span className={`role-pill ${user.role.toLowerCase()}`}>
-                  {user.role}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <span className={`role-pill ${user.role.toLowerCase()}`}>
+                    {user.role}
+                  </span>
+                  <span className="profile-card-action-hint">View Profile &rarr;</span>
+                </div>
               </div>
             </div>
 
@@ -673,6 +710,20 @@ function App() {
                   </button>
                 </div>
               )}
+
+              <button
+                className="topbar-profile-trigger-btn"
+                onClick={() => setShowProfileModal(true)}
+                title="View Full Profile Details"
+              >
+                <div className="topbar-avatar-badge">{initials}</div>
+                <div className="topbar-profile-info">
+                  <span className="topbar-profile-name">{user.name || user.email}</span>
+                  <span className={`topbar-role-tag ${user.role?.toLowerCase()}`}>
+                    {user.role} Profile &rarr;
+                  </span>
+                </div>
+              </button>
             </div>
           </header>
 
@@ -712,6 +763,15 @@ function App() {
             )}
           </main>
         </div>
+
+        {/* User Profile Details Modal (Admin & Employee) */}
+        {showProfileModal && (
+          <UserProfileModal
+            user={user}
+            onClose={() => setShowProfileModal(false)}
+            onLogout={logout}
+          />
+        )}
       </div>
     );
   }
