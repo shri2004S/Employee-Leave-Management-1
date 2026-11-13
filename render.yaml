@@ -1,0 +1,30 @@
+services:
+  # ============================================================================
+  # Render Web Service: Unified Full-Stack Employee Leave Management Application
+  # ============================================================================
+  - type: web
+    name: leave-management-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /api/auth/me
+    envVars:
+      # Database connection (Provide your cloud MySQL credentials from Aiven / TiDB / PlanetScale)
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      # Automatically generated secure 256-bit JWT signing secret
+      - key: JWT_SECRET
+        generateValue: true
+      # Enable HTTPS-only cookies on Render
+      - key: APP_COOKIE_SECURE
+        value: "true"
+      # Memory tuning for Render Free Tier (512MB RAM)
+      - key: JAVA_OPTS
+        value: "-Xms256m -Xmx480m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"

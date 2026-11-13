@@ -99,7 +99,7 @@ function passwordStrength(value) {
 }
 // ======================================================
 
-const API_URL = "http://localhost:8080/api/auth";
+import { AUTH_API_URL as API_URL } from "./apiConfig";
 const STRENGTH_LABELS = ["Too weak", "Weak", "Fair", "Good", "Strong"];
 
 const EMPTY_FORM = { name: "", email: "", password: "", confirmPassword: "" };

@@ -49,14 +49,17 @@ public class LeaveController {
             leaveService.getMyLeaves(authentication);
 
         List<Map<String, Object>> result = leaves.stream()
-            .map(leave -> Map.<String, Object>of(
-                "id", leave.getId(),
-                "leaveType", leave.getLeaveType(),
-                "fromDate", leave.getFromDate(),
-                "toDate", leave.getToDate(),
-                "reason", leave.getReason(),
-                "status", leave.getStatus()
-            ))
+            .map(leave -> {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", leave.getId());
+                map.put("leaveType", leave.getLeaveType());
+                map.put("fromDate", leave.getFromDate());
+                map.put("toDate", leave.getToDate());
+                map.put("reason", leave.getReason());
+                map.put("status", leave.getStatus());
+                map.put("rejectionReason", leave.getRejectionReason());
+                return map;
+            })
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(result);

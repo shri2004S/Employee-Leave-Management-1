@@ -40,6 +40,17 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/assets/**",
+                    "/*.ico",
+                    "/*.png",
+                    "/*.svg",
+                    "/*.js",
+                    "/*.css",
+                    "/favicon.ico"
+                ).permitAll()
                 .requestMatchers("/api/auth/**", "/error").permitAll()
                 .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
                 .anyRequest().authenticated()

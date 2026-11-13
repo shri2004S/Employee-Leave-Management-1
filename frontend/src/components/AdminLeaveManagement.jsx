@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import "./AdminLeaveManagement.css";
 
-const ADMIN_API_URL = "http://localhost:8080/api/admin/leaves";
+import { ADMIN_API_URL } from "../apiConfig";
 
 function AdminLeaveManagement() {
   const [leaves, setLeaves] = useState([]);

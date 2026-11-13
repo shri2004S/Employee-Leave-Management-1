@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# IDEs & Editor
+.vscode/
+.idea/
+*.iml
+.DS_Store
+
+# Backend Build & Temp
+backend/target/
+target/
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# Frontend Build & Dependencies
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# Documentation & Scratch
+postman/
+.postman/
+auth-vanilla-js/
+database/
+Employee-Leave-Management-1/
+*.md
+!README.md

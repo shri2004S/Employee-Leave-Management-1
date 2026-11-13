@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import "./MyLeaveRequests.css";
 
-const API_URL = "http://localhost:8080/api/leaves";
+import { LEAVES_API_URL as API_URL } from "../apiConfig";
 
 function MyLeaveRequests({ refreshTrigger }) {
   const [leaves, setLeaves] = useState([]);

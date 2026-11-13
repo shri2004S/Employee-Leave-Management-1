@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import "./ApplyLeave.css";
 
-const API_URL = "http://localhost:8080/api/leaves";
+import { LEAVES_API_URL as API_URL } from "../apiConfig";
 
 function ApplyLeave({ onLeaveSubmitted }) {
   const [leaveType, setLeaveType] = useState("CASUAL");

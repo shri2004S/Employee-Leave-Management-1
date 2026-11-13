@@ -28,3 +28,7 @@ frontend/.pnpm-store/
 .env.*
 !.env.example
 
+# Nested clone
+Employee-Leave-Management-1/
+
+
