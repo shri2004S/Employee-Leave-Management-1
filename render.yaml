@@ -28,3 +28,4 @@ services:
       # Memory tuning for Render Free Tier (512MB RAM)
       - key: JAVA_OPTS
         value: "-Xms256m -Xmx480m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+

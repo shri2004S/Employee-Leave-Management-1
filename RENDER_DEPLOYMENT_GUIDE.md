@@ -131,3 +131,4 @@ docker-compose down
 | **Database connection refused** | Cloud MySQL requires SSL or public IP access. | Ensure JDBC URL includes `?useSSL=true&allowPublicKeyRetrieval=true`. |
 | **Out of Memory Error (OOM)** | JVM exceeding Render free tier 512MB RAM limit. | The provided Dockerfile includes `-Xms256m -Xmx480m -XX:+UseG1GC` to stay safely within memory bounds. |
 | **Cookie not saved on login** | Non-HTTPS domain with `APP_COOKIE_SECURE=true`. | Only set `APP_COOKIE_SECURE=true` on live Render HTTPS URLs (`https://*.onrender.com`). |
+
