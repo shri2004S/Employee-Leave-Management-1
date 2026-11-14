@@ -434,11 +434,6 @@ function MyLeaveRequests({ refreshTrigger }) {
                         <span className="approver-pill-badge" title={leave.assignedAdmin || "All Admins"}>
                           👤 {leave.assignedAdmin || "All Admins"}
                         </span>
-                        {leave.sharedWith && (
-                          <small className="shared-with-subtag" title={`Shared with ${leave.sharedWith}`}>
-                            CC: {leave.sharedWith}
-                          </small>
-                        )}
                       </div>
                     </td>
 

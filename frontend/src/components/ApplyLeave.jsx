@@ -15,7 +15,6 @@ function ApplyLeave({ onLeaveSubmitted }) {
   // Approver / Admin Selection States
   const [admins, setAdmins] = useState([]);
   const [assignedAdmin, setAssignedAdmin] = useState("All Admins (Default)");
-  const [sharedWith, setSharedWith] = useState("");
 
   const today = new Date();
   const localToday = [
@@ -106,7 +105,6 @@ function ApplyLeave({ onLeaveSubmitted }) {
       toDate,
       reason: reason.trim(),
       assignedAdmin: assignedAdmin || "All Admins (Default)",
-      sharedWith: sharedWith.trim(),
     };
 
     setLoading(true);
@@ -140,7 +138,6 @@ function ApplyLeave({ onLeaveSubmitted }) {
       setFromDate("");
       setToDate("");
       setReason("");
-      setSharedWith("");
       if (onLeaveSubmitted) {
         onLeaveSubmitted();
       }
@@ -373,24 +370,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
           </div>
         </div>
 
-        {/* 4. Optional Colleague Share / Notify */}
-        <div className="field-box">
-          <label htmlFor="sharedWith">
-            Share Request / Notify Colleague (Optional)
-          </label>
-          <input
-            id="sharedWith"
-            type="text"
-            placeholder="e.g. colleague@company.com or Handover Partner Name"
-            value={sharedWith}
-            onChange={(e) => setSharedWith(e.target.value)}
-          />
-          <small className="field-sub-note">
-            Optional: Keep a team member or handover partner informed about your absence dates.
-          </small>
-        </div>
-
-        {/* 5. Reason Field */}
+        {/* 4. Reason Field */}
         <div className="field-box">
           <div className="label-with-counter">
             <label htmlFor="reason">
