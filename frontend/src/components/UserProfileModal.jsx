@@ -126,19 +126,6 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
               <span className="detail-value">{formattedDate}</span>
             </div>
           </div>
-
-          <div className="profile-detail-card">
-            <div className="detail-icon-wrap indigo">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-            </div>
-            <div className="detail-text-wrap">
-              <span className="detail-label">Security & Auth</span>
-              <span className="detail-value">JWT Secure Session (HTTPS)</span>
-            </div>
-          </div>
         </div>
 
         {/* Permissions & Capabilities Box */}
