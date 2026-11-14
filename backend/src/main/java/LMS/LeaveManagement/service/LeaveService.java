@@ -140,8 +140,40 @@ public class LeaveService {
         existing.setFromDate(updatedRequest.getFromDate());
         existing.setToDate(updatedRequest.getToDate());
         existing.setReason(updatedRequest.getReason().trim());
+        if (updatedRequest.getAssignedAdmin() != null) {
+            existing.setAssignedAdmin(updatedRequest.getAssignedAdmin());
+        }
+        if (updatedRequest.getSharedWith() != null) {
+            existing.setSharedWith(updatedRequest.getSharedWith());
+        }
 
         return leaveRepository.save(existing);
+    }
+
+    public List<java.util.Map<String, Object>> getAvailableAdmins() {
+        return userRepository.findByRoleIgnoreCase("ADMIN").stream()
+            .map(u -> {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", u.getId());
+                map.put("name", u.getName());
+                map.put("email", u.getEmail());
+                map.put("role", u.getRole());
+                return map;
+            })
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    public List<java.util.Map<String, Object>> getAllUsers() {
+        return userRepository.findAll().stream()
+            .map(u -> {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", u.getId());
+                map.put("name", u.getName());
+                map.put("email", u.getEmail());
+                map.put("role", u.getRole());
+                return map;
+            })
+            .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional

@@ -370,6 +370,14 @@ function AdminLeaveManagement() {
                           <span className="emp-email-text">
                             {leave.employeeEmail || "No Email Provided"}
                           </span>
+                          <span className="emp-assigned-badge" title={`Assigned To: ${leave.assignedAdmin || "All Admins"}`}>
+                            To: {leave.assignedAdmin || "All Admins"}
+                          </span>
+                          {leave.sharedWith && (
+                            <span className="emp-shared-badge" title={`Shared With: ${leave.sharedWith}`}>
+                              CC: {leave.sharedWith}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>

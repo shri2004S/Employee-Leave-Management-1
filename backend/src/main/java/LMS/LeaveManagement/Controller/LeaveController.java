@@ -21,6 +21,16 @@ public class LeaveController {
         this.leaveService = leaveService;
     }
 
+    @GetMapping("/admins")
+    public ResponseEntity<List<Map<String, Object>>> getAvailableAdmins() {
+        return ResponseEntity.ok(leaveService.getAvailableAdmins());
+    }
+
+    @GetMapping("/recipients")
+    public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
+        return ResponseEntity.ok(leaveService.getAllUsers());
+    }
+
     @PostMapping({"", "/applyLeaves"})
     public ResponseEntity<?> applyForLeave(
             @RequestBody LeaveRequest request,
@@ -29,17 +39,18 @@ public class LeaveController {
         LeaveRequest saved =
             leaveService.applyForLeave(request, authentication);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-            Map.of(
-                "message", "Leave request submitted successfully",
-                "id", saved.getId(),
-                "leaveType", saved.getLeaveType(),
-                "fromDate", saved.getFromDate(),
-                "toDate", saved.getToDate(),
-                "reason", saved.getReason(),
-                "status", saved.getStatus()
-            )
-        );
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("message", "Leave request submitted successfully");
+        response.put("id", saved.getId());
+        response.put("leaveType", saved.getLeaveType());
+        response.put("fromDate", saved.getFromDate());
+        response.put("toDate", saved.getToDate());
+        response.put("reason", saved.getReason());
+        response.put("status", saved.getStatus());
+        response.put("assignedAdmin", saved.getAssignedAdmin() != null ? saved.getAssignedAdmin() : "");
+        response.put("sharedWith", saved.getSharedWith() != null ? saved.getSharedWith() : "");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
     @GetMapping({"", "/getLeaves"})
@@ -58,6 +69,8 @@ public class LeaveController {
                 map.put("reason", leave.getReason());
                 map.put("status", leave.getStatus());
                 map.put("rejectionReason", leave.getRejectionReason());
+                map.put("assignedAdmin", leave.getAssignedAdmin() != null ? leave.getAssignedAdmin() : "All Admins");
+                map.put("sharedWith", leave.getSharedWith() != null ? leave.getSharedWith() : "");
                 return map;
             })
             .collect(Collectors.toList());
@@ -74,17 +87,18 @@ public class LeaveController {
         LeaveRequest updated =
             leaveService.updateLeave(id, request, authentication);
 
-        return ResponseEntity.ok(
-            Map.of(
-                "message", "Leave request updated successfully",
-                "id", updated.getId(),
-                "leaveType", updated.getLeaveType(),
-                "fromDate", updated.getFromDate(),
-                "toDate", updated.getToDate(),
-                "reason", updated.getReason(),
-                "status", updated.getStatus()
-            )
-        );
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("message", "Leave request updated successfully");
+        response.put("id", updated.getId());
+        response.put("leaveType", updated.getLeaveType());
+        response.put("fromDate", updated.getFromDate());
+        response.put("toDate", updated.getToDate());
+        response.put("reason", updated.getReason());
+        response.put("status", updated.getStatus());
+        response.put("assignedAdmin", updated.getAssignedAdmin() != null ? updated.getAssignedAdmin() : "");
+        response.put("sharedWith", updated.getSharedWith() != null ? updated.getSharedWith() : "");
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

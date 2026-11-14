@@ -38,6 +38,8 @@ public class AdminService {
                 map.put("toDate", leave.getToDate());
                 map.put("reason", leave.getReason());
                 map.put("status", leave.getStatus());
+                map.put("assignedAdmin", leave.getAssignedAdmin() != null ? leave.getAssignedAdmin() : "All Admins");
+                map.put("sharedWith", leave.getSharedWith() != null ? leave.getSharedWith() : "");
                 map.put("createdAt", leave.getCreatedAt() != null ? leave.getCreatedAt().toString() : "");
                 return map;
             })

@@ -596,6 +596,35 @@
   margin: 0 auto;
 }
 
+.approver-info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 200px;
+}
+
+.approver-pill-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shared-with-subtag {
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---------------------------------------------------------
    6. EDIT MODAL & CONFIRM MODALS
    --------------------------------------------------------- */

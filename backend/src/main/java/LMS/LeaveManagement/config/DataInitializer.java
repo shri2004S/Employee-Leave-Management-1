@@ -58,6 +58,7 @@ public class DataInitializer implements CommandLineRunner {
                 r1.setToDate(LocalDate.now().plusDays(4));
                 r1.setReason("Attending family wedding ceremony");
                 r1.setStatus("PENDING");
+                r1.setAssignedAdmin("New Admin (newadmin@gmail.com)");
                 leaveRequestRepository.save(r1);
 
                 LeaveRequest r2 = new LeaveRequest();
@@ -67,6 +68,7 @@ public class DataInitializer implements CommandLineRunner {
                 r2.setToDate(LocalDate.now().minusDays(9));
                 r2.setReason("Severe fever and doctor consultation");
                 r2.setStatus("APPROVED");
+                r2.setAssignedAdmin("System Admin (admin@settribe.com)");
                 leaveRequestRepository.save(r2);
 
                 LeaveRequest r3 = new LeaveRequest();
@@ -77,6 +79,7 @@ public class DataInitializer implements CommandLineRunner {
                 r3.setReason("Annual personal vacation");
                 r3.setStatus("REJECTED");
                 r3.setRejectionReason("High workload during sprint release");
+                r3.setAssignedAdmin("Admin User (admin@gmail.com)");
                 leaveRequestRepository.save(r3);
 
                 log.info("Sample leave requests created successfully.");
@@ -126,3 +129,4 @@ public class DataInitializer implements CommandLineRunner {
         return user;
     }
 }
+

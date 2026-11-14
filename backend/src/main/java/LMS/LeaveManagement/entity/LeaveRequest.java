@@ -35,6 +35,12 @@ public class LeaveRequest {
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
+    @Column(name = "assigned_admin", length = 150)
+    private String assignedAdmin;
+
+    @Column(name = "shared_with", length = 150)
+    private String sharedWith;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -103,6 +109,22 @@ public class LeaveRequest {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public String getAssignedAdmin() {
+        return assignedAdmin;
+    }
+
+    public void setAssignedAdmin(String assignedAdmin) {
+        this.assignedAdmin = assignedAdmin;
+    }
+
+    public String getSharedWith() {
+        return sharedWith;
+    }
+
+    public void setSharedWith(String sharedWith) {
+        this.sharedWith = sharedWith;
     }
 
     public LocalDateTime getCreatedAt() {

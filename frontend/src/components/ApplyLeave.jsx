@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./ApplyLeave.css";
 
 import { LEAVES_API_URL as API_URL } from "../apiConfig";
@@ -12,12 +12,54 @@ function ApplyLeave({ onLeaveSubmitted }) {
   const [messageType, setMessageType] = useState("success");
   const [loading, setLoading] = useState(false);
 
+  // Approver / Admin Selection States
+  const [admins, setAdmins] = useState([]);
+  const [assignedAdmin, setAssignedAdmin] = useState("All Admins (Default)");
+  const [sharedWith, setSharedWith] = useState("");
+
   const today = new Date();
   const localToday = [
     today.getFullYear(),
     String(today.getMonth() + 1).padStart(2, "0"),
     String(today.getDate()).padStart(2, "0"),
   ].join("-");
+
+  // Fetch available Admins from backend
+  useEffect(() => {
+    async function fetchAdmins() {
+      try {
+        const token = localStorage.getItem("leaveToken");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const response = await fetch(`${API_URL}/admins`, {
+          credentials: "include",
+          headers,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setAdmins(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load admins:", err);
+      }
+    }
+
+    fetchAdmins();
+  }, []);
+
+  // Display admins with standard fallback if database is loading
+  const displayAdmins =
+    admins.length > 0
+      ? admins
+      : [
+          { id: 1, name: "New Admin", email: "newadmin@gmail.com", role: "ADMIN" },
+          { id: 2, name: "System Admin", email: "admin@settribe.com", role: "ADMIN" },
+          { id: 3, name: "Admin User", email: "admin@gmail.com", role: "ADMIN" },
+        ];
 
   const leaveDays = useMemo(() => {
     if (!fromDate || !toDate || toDate < fromDate) return 0;
@@ -63,6 +105,8 @@ function ApplyLeave({ onLeaveSubmitted }) {
       fromDate,
       toDate,
       reason: reason.trim(),
+      assignedAdmin: assignedAdmin || "All Admins (Default)",
+      sharedWith: sharedWith.trim(),
     };
 
     setLoading(true);
@@ -89,11 +133,14 @@ function ApplyLeave({ onLeaveSubmitted }) {
       }
 
       setMessageType("success");
-      setMessage("Leave request submitted successfully! Your application is now PENDING review.");
+      setMessage(
+        `Leave request submitted successfully to ${assignedAdmin}! Your application is now PENDING review.`
+      );
       setLeaveType("CASUAL");
       setFromDate("");
       setToDate("");
       setReason("");
+      setSharedWith("");
       if (onLeaveSubmitted) {
         onLeaveSubmitted();
       }
@@ -167,7 +214,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
           <span className="card-eyebrow-pill">REQUEST ABSENCE</span>
           <h2>Apply for Leave</h2>
           <p className="card-subtitle-desc">
-            Complete the form below to request time off. Your manager will be notified for review.
+            Complete the form below to request time off. Select which administrator or manager should review your request.
           </p>
         </div>
 
@@ -180,7 +227,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
       </div>
 
       <form onSubmit={handleSubmit} className="apply-form-container">
-        {/* Leave Type Selector with Interactive Cards */}
+        {/* 1. Leave Type Selector with Interactive Cards */}
         <div className="form-section-block">
           <label className="section-field-label">Select Leave Category</label>
           <div className="type-pills-grid">
@@ -200,7 +247,6 @@ function ApplyLeave({ onLeaveSubmitted }) {
             ))}
           </div>
 
-          {/* Accessible hidden select for screen readers / fallbacks */}
           <select
             id="leaveType"
             value={leaveType}
@@ -217,7 +263,63 @@ function ApplyLeave({ onLeaveSubmitted }) {
           </select>
         </div>
 
-        {/* Date Fields & Duration Preview */}
+        {/* 2. Admin & Approver Selection (Requested Feature) */}
+        <div className="form-section-block approver-selection-section">
+          <div className="label-with-counter">
+            <label className="section-field-label">
+              Send Request To (Select Admin / Approver) <span className="req-star">*</span>
+            </label>
+            <span className="field-hint-text">Choose which admin or manager will review this request</span>
+          </div>
+
+          <div className="approver-cards-grid">
+            {/* Global option */}
+            <button
+              type="button"
+              className={`approver-card ${assignedAdmin === "All Admins (Default)" ? "selected" : ""}`}
+              onClick={() => setAssignedAdmin("All Admins (Default)")}
+            >
+              <div className="approver-avatar all">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div className="approver-info">
+                <strong>All Administrators</strong>
+                <small>Any available Admin can review</small>
+              </div>
+              <span className="approver-badge">GLOBAL</span>
+            </button>
+
+            {/* Individual Admins from DB */}
+            {displayAdmins.map((adm) => {
+              const fullVal = `${adm.name} (${adm.email})`;
+              const isSelected = assignedAdmin === fullVal;
+              return (
+                <button
+                  key={adm.id || adm.email}
+                  type="button"
+                  className={`approver-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => setAssignedAdmin(fullVal)}
+                >
+                  <div className="approver-avatar">
+                    {adm.name ? adm.name.charAt(0).toUpperCase() : "A"}
+                  </div>
+                  <div className="approver-info">
+                    <strong>{adm.name}</strong>
+                    <small>{adm.email}</small>
+                  </div>
+                  <span className="approver-badge admin">ADMIN</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3. Date Fields & Duration Preview */}
         <div className="dates-duration-grid">
           <div className="field-box">
             <label htmlFor="fromDate">
@@ -271,7 +373,24 @@ function ApplyLeave({ onLeaveSubmitted }) {
           </div>
         </div>
 
-        {/* Reason Field */}
+        {/* 4. Optional Colleague Share / Notify */}
+        <div className="field-box">
+          <label htmlFor="sharedWith">
+            Share Request / Notify Colleague (Optional)
+          </label>
+          <input
+            id="sharedWith"
+            type="text"
+            placeholder="e.g. colleague@company.com or Handover Partner Name"
+            value={sharedWith}
+            onChange={(e) => setSharedWith(e.target.value)}
+          />
+          <small className="field-sub-note">
+            Optional: Keep a team member or handover partner informed about your absence dates.
+          </small>
+        </div>
+
+        {/* 5. Reason Field */}
         <div className="field-box">
           <div className="label-with-counter">
             <label htmlFor="reason">

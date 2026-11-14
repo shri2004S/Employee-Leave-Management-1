@@ -392,6 +392,7 @@ function MyLeaveRequests({ refreshTrigger }) {
                 <th>Category</th>
                 <th>Duration &amp; Dates</th>
                 <th>Reason</th>
+                <th>Sent To / Approver</th>
                 <th>Status</th>
                 <th className="actions-header-cell">Actions</th>
               </tr>
@@ -426,6 +427,19 @@ function MyLeaveRequests({ refreshTrigger }) {
 
                     <td className="reason-summary-cell" title={leave.reason}>
                       {leave.reason}
+                    </td>
+
+                    <td>
+                      <div className="approver-info-cell">
+                        <span className="approver-pill-badge" title={leave.assignedAdmin || "All Admins"}>
+                          👤 {leave.assignedAdmin || "All Admins"}
+                        </span>
+                        {leave.sharedWith && (
+                          <small className="shared-with-subtag" title={`Shared with ${leave.sharedWith}`}>
+                            CC: {leave.sharedWith}
+                          </small>
+                        )}
+                      </div>
                     </td>
 
                     <td>
