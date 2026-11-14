@@ -11,6 +11,7 @@ import LMS.LeaveManagement.security.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -71,18 +72,34 @@ public class AuthService {
                 user.getName(), user.getEmail(), user.getRole());
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
 
         String email = request.email().trim().toLowerCase();
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        email, request.password()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            email, request.password()));
+        } catch (AuthenticationException ex) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid email or password");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED,
                         "Invalid email or password"));
+
+        // Auto-upgrade plain text passwords to BCrypt in database upon successful login
+        if (user.getPassword() != null
+                && !user.getPassword().startsWith("$2a$")
+                && !user.getPassword().startsWith("$2b$")
+                && !user.getPassword().startsWith("$2y$")) {
+            user.setPassword(passwordEncoder.encode(request.password()));
+            userRepository.save(user);
+        }
 
         UserDetails details =
                 org.springframework.security.core.userdetails.User

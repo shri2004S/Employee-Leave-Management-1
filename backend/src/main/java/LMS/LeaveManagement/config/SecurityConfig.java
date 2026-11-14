@@ -88,6 +88,27 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                return bcrypt.encode(rawPassword);
+            }
+
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                if (encodedPassword == null) {
+                    return false;
+                }
+                // Check if stored password is BCrypt hash ($2a$, $2b$, $2y$)
+                if (encodedPassword.startsWith("$2a$")
+                        || encodedPassword.startsWith("$2b$")
+                        || encodedPassword.startsWith("$2y$")) {
+                    return bcrypt.matches(rawPassword, encodedPassword);
+                }
+                // Fallback for plain text passwords manually entered in phpMyAdmin / MySQL
+                return rawPassword.toString().equals(encodedPassword);
+            }
+        };
     }
 }
