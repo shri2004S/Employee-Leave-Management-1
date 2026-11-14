@@ -10,7 +10,7 @@ services:
     region: oregon
     branch: main
     autoDeploy: true
-    healthCheckPath: /api/auth/me
+    healthCheckPath: /api/health
     envVars:
       # Database connection (Provide your cloud MySQL credentials from Aiven / TiDB / PlanetScale)
       - key: SPRING_DATASOURCE_URL
