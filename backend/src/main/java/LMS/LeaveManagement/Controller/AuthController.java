@@ -7,7 +7,6 @@ import LMS.LeaveManagement.dto.LoginRequest;
 import LMS.LeaveManagement.dto.RegisterRequest;
 import LMS.LeaveManagement.service.AuthService;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,11 +33,14 @@ public class AuthController {
     public AuthController(
             AuthService authService,
             @Value("${app.cookie.secure:false}") boolean cookieSecure) {
+
         this.authService = authService;
         this.cookieSecure = cookieSecure;
     }
 
+    // Create JWT authentication cookie
     private ResponseCookie createAuthCookie(String token) {
+
         return ResponseCookie.from(COOKIE_NAME, token)
                 .httpOnly(true)
                 .secure(cookieSecure)
@@ -47,7 +50,9 @@ public class AuthController {
                 .build();
     }
 
+    // Clear authentication cookie during logout
     private ResponseCookie clearAuthCookie() {
+
         return ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)
                 .secure(cookieSecure)
@@ -57,7 +62,9 @@ public class AuthController {
                 .build();
     }
 
+    // Prepare user response
     private Map<String, Object> userResponse(AuthResponse data) {
+
         return Map.of(
                 "token", data.token() != null ? data.token() : "",
                 "tokenType", "Bearer",
@@ -68,6 +75,7 @@ public class AuthController {
         );
     }
 
+    // USER REGISTRATION
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(
             @Valid @RequestBody RegisterRequest request) {
@@ -82,6 +90,7 @@ public class AuthController {
                 .body(userResponse(data));
     }
 
+    // USER LOGIN
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(
             @Valid @RequestBody LoginRequest request) {
@@ -96,8 +105,10 @@ public class AuthController {
                 .body(userResponse(data));
     }
 
+    // USER LOGOUT
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout() {
+
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.SET_COOKIE,
@@ -106,15 +117,29 @@ public class AuthController {
                 .body(Map.of("message", "Logged out successfully"));
     }
 
+    // GET CURRENT LOGGED-IN USER
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> currentUser(
             Authentication authentication) {
 
+        // Check authentication before accessing username
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                            "message", "User is not authenticated"
+                    ));
+        }
+
+        // Get logged-in user's details
         return ResponseEntity.ok(
                 authService.getCurrentUser(authentication.getName())
         );
     }
 
+    // FORGOT PASSWORD
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request) {
