@@ -134,9 +134,14 @@ function App() {
   useEffect(() => {
     async function verifySession() {
       try {
+        const token = localStorage.getItem("leaveToken");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
         const response = await fetch(`${API_URL}/me`, {
           method: "GET",
           credentials: "include",
+          headers,
         });
 
         if (!response.ok) {
@@ -389,9 +394,14 @@ function App() {
 
   async function logout() {
     try {
+      const token = localStorage.getItem("leaveToken");
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       await fetch(`${API_URL}/logout`, {
         method: "POST",
         credentials: "include",
+        headers,
       });
     } catch (error) {
       console.error("Logout request failed:", error);
