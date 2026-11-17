@@ -55,9 +55,12 @@ function ApplyLeave({ onLeaveSubmitted }) {
     admins.length > 0
       ? admins
       : [
-          { id: 1, name: "New Admin", email: "newadmin@gmail.com", role: "ADMIN" },
-          { id: 2, name: "System Admin", email: "admin@settribe.com", role: "ADMIN" },
-          { id: 3, name: "Admin User", email: "admin@gmail.com", role: "ADMIN" },
+          { id: 1, name: "Manideep Sir", email: "manideepsir@gmail.com", role: "ADMIN" },
+          { id: 2, name: "Sushil Sir", email: "sushilsir@gmail.com", role: "ADMIN" },
+          { id: 3, name: "Gaurav Sir", email: "gauravsir@gmail.com", role: "ADMIN" },
+          { id: 4, name: "System Admin", email: "admin@settribe.com", role: "ADMIN" },
+          { id: 5, name: "Admin User", email: "admin@gmail.com", role: "ADMIN" },
+          { id: 6, name: "New Admin", email: "newadmin@gmail.com", role: "ADMIN" },
         ];
 
   const leaveDays = useMemo(() => {

@@ -35,19 +35,20 @@ public class DataInitializer implements CommandLineRunner {
         try {
             log.info("Checking initial application data...");
 
-            // 1. Seed System Admin
+            // 1. Seed Live Admins requested: Manideep Sir, Sushil Sir, Gaurav Sir
+            createOrUpdateAdmin("Manideep Sir", "manideepsir@gmail.com", "Password@123");
+            createOrUpdateAdmin("Sushil Sir", "sushilsir@gmail.com", "Password@123");
+            createOrUpdateAdmin("Gaurav Sir", "gauravsir@gmail.com", "Password@123");
+
+            // 2. Seed System & Lead Admins
             createOrUpdateAdmin("System Admin", "admin@settribe.com", "Password@123");
-
-            // 2. Seed Admin User (updated with Shri1234@)
             createOrUpdateAdmin("Admin User", "admin@gmail.com", "Shri1234@");
-
-            // 3. Seed New Admin
             createOrUpdateAdmin("New Admin", "newadmin@gmail.com", "Shri1234@");
 
-            // 4. Seed Employee
+            // 3. Seed Employee
             User john = createOrGetEmployee("John Doe", "john@settribe.com", "Password@123");
 
-            // 5. Seed Sample Leave Requests if table is empty
+            // 4. Seed Sample Leave Requests if table is empty
             if (leaveRequestRepository.count() == 0 && john != null) {
                 log.info("Seeding initial sample leave requests for employee {}...", john.getEmail());
 
@@ -58,7 +59,7 @@ public class DataInitializer implements CommandLineRunner {
                 r1.setToDate(LocalDate.now().plusDays(4));
                 r1.setReason("Attending family wedding ceremony");
                 r1.setStatus("PENDING");
-                r1.setAssignedAdmin("New Admin (newadmin@gmail.com)");
+                r1.setAssignedAdmin("Manideep Sir (manideepsir@gmail.com)");
                 leaveRequestRepository.save(r1);
 
                 LeaveRequest r2 = new LeaveRequest();
@@ -68,7 +69,7 @@ public class DataInitializer implements CommandLineRunner {
                 r2.setToDate(LocalDate.now().minusDays(9));
                 r2.setReason("Severe fever and doctor consultation");
                 r2.setStatus("APPROVED");
-                r2.setAssignedAdmin("System Admin (admin@settribe.com)");
+                r2.setAssignedAdmin("Sushil Sir (sushilsir@gmail.com)");
                 leaveRequestRepository.save(r2);
 
                 LeaveRequest r3 = new LeaveRequest();
@@ -79,7 +80,7 @@ public class DataInitializer implements CommandLineRunner {
                 r3.setReason("Annual personal vacation");
                 r3.setStatus("REJECTED");
                 r3.setRejectionReason("High workload during sprint release");
-                r3.setAssignedAdmin("Admin User (admin@gmail.com)");
+                r3.setAssignedAdmin("Gaurav Sir (gauravsir@gmail.com)");
                 leaveRequestRepository.save(r3);
 
                 log.info("Sample leave requests created successfully.");

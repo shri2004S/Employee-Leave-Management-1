@@ -102,4 +102,24 @@ UPDATE users
 SET password = 'Shri1234@', role = 'ADMIN' 
 WHERE email = 'admin@gmail.com';
 
+-- -------------------------------------------------------
+-- Query 11: Find all leaves assigned to specific admin (Manideep Sir / Sushil Sir / Gaurav Sir)
+-- -------------------------------------------------------
+SELECT 
+    lr.id,
+    u.name AS employee_name,
+    lr.leave_type,
+    lr.from_date,
+    lr.to_date,
+    lr.reason,
+    lr.status,
+    lr.assigned_admin
+FROM leave_requests lr
+JOIN users u ON lr.user_id = u.id
+WHERE lr.assigned_admin LIKE '%Manideep Sir%'
+   OR lr.assigned_admin LIKE '%Sushil Sir%'
+   OR lr.assigned_admin LIKE '%Gaurav Sir%'
+ORDER BY lr.created_at DESC;
+
+
 
