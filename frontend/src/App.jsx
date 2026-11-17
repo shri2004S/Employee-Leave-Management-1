@@ -21,6 +21,23 @@ const LIMITS = {
   PASSWORD_MAX: 72, // BCrypt limit
 };
 
+const OFFICIAL_ADMIN_EMAILS = new Set([
+  "manideep@gmail.com",
+  "sushil@gmail.com",
+  "gaurav@gmail.com",
+  "manideepsir@gmail.com",
+  "sushilsir@gmail.com",
+  "gauravsir@gmail.com",
+]);
+
+function normalizeUserRole(userObj) {
+  if (!userObj) return userObj;
+  if (userObj.email && OFFICIAL_ADMIN_EMAILS.has(userObj.email.trim().toLowerCase())) {
+    return { ...userObj, role: "ADMIN" };
+  }
+  return userObj;
+}
+
 function validateName(value) {
   const raw = value ?? "";
   const v = raw.trim();
@@ -149,12 +166,13 @@ function App() {
         }
 
         const currentUser = await response.json();
+        const normalized = normalizeUserRole(currentUser);
 
-        localStorage.setItem("leaveUser", JSON.stringify(currentUser));
-        setUser(currentUser);
+        localStorage.setItem("leaveUser", JSON.stringify(normalized));
+        setUser(normalized);
 
         setActiveTab(
-          currentUser.role === "ADMIN" ? "ADMIN" : "EMPLOYEE"
+          normalized.role === "ADMIN" ? "ADMIN" : "EMPLOYEE"
         );
       } catch {
         localStorage.removeItem("leaveUser");
@@ -359,21 +377,23 @@ function App() {
         return;
       }
 
-      localStorage.setItem("leaveUser", JSON.stringify(data));
-      if (data.token) {
-        localStorage.setItem("leaveToken", data.token);
+      const normalizedUser = normalizeUserRole(data);
+
+      localStorage.setItem("leaveUser", JSON.stringify(normalizedUser));
+      if (normalizedUser.token) {
+        localStorage.setItem("leaveToken", normalizedUser.token);
       }
 
       // Show "Login Successfully" Popup modal and proceed to Dashboard!
       setPopup({
         show: true,
         title: "Login Successful!",
-        message: `Welcome back, ${data.name || data.email}! Your session is active.`,
+        message: `Welcome back, ${normalizedUser.name || normalizedUser.email}! Your session is active.`,
         btnText: "Open Dashboard →",
         onConfirm: () => {
           setPopup({ show: false, title: "", message: "", btnText: "", onConfirm: null });
-          setUser(data);
-          setActiveTab(data.role === "ADMIN" ? "ADMIN" : "EMPLOYEE");
+          setUser(normalizedUser);
+          setActiveTab(normalizedUser.role === "ADMIN" ? "ADMIN" : "EMPLOYEE");
           setForm(EMPTY_FORM);
           setErrors({});
           setTouched({});

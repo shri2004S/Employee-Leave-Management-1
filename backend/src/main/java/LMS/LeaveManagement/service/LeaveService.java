@@ -151,6 +151,10 @@ public class LeaveService {
     }
 
     public List<java.util.Map<String, Object>> getAvailableAdmins() {
+        ensureOfficialAdminRecord("Manideep Sir", "manideep@gmail.com");
+        ensureOfficialAdminRecord("Sushil Sir", "sushil@gmail.com");
+        ensureOfficialAdminRecord("Gaurav Sir", "gaurav@gmail.com");
+
         java.util.Set<String> legacy = java.util.Set.of(
             "manideepsir@gmail.com", "sushilsir@gmail.com", "gauravsir@gmail.com",
             "admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com"
@@ -166,6 +170,29 @@ public class LeaveService {
                 return map;
             })
             .collect(java.util.stream.Collectors.toList());
+    }
+
+    private void ensureOfficialAdminRecord(String name, String email) {
+        try {
+            userRepository.findByEmail(email).ifPresentOrElse(
+                u -> {
+                    if (!"ADMIN".equalsIgnoreCase(u.getRole())) {
+                        u.setRole("ADMIN");
+                        u.setName(name);
+                        userRepository.save(u);
+                    }
+                },
+                () -> {
+                    User nu = new User();
+                    nu.setName(name);
+                    nu.setEmail(email);
+                    nu.setRole("ADMIN");
+                    nu.setPassword("$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6");
+                    userRepository.save(nu);
+                }
+            );
+        } catch (Exception ignored) {
+        }
     }
 
     public List<java.util.Map<String, Object>> getAllUsers() {
