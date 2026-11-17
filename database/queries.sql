@@ -95,3 +95,11 @@ WHERE id = 1 AND status = 'PENDING' AND user_id = 2;
 DELETE FROM leave_requests 
 WHERE id = 1 AND status = 'PENDING' AND user_id = 2;
 
+-- -------------------------------------------------------
+-- Query 10: Reset / Update Admin password (e.g. to Shri1234@ or Password@123)
+-- -------------------------------------------------------
+UPDATE users 
+SET password = 'Shri1234@', role = 'ADMIN' 
+WHERE email = 'admin@gmail.com';
+
+

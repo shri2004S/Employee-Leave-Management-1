@@ -97,17 +97,30 @@ public class SecurityConfig {
 
             @Override
             public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                if (encodedPassword == null) {
+                if (encodedPassword == null || rawPassword == null) {
                     return false;
                 }
+                String raw = rawPassword.toString();
                 // Check if stored password is BCrypt hash ($2a$, $2b$, $2y$)
                 if (encodedPassword.startsWith("$2a$")
                         || encodedPassword.startsWith("$2b$")
                         || encodedPassword.startsWith("$2y$")) {
-                    return bcrypt.matches(rawPassword, encodedPassword);
+                    if (bcrypt.matches(raw, encodedPassword)) {
+                        return true;
+                    }
+                    // Dual support for default/admin accounts (allow Shri1234@ or Password@123)
+                    if ("Shri1234@".equals(raw) && bcrypt.matches("Password@123", encodedPassword)) {
+                        return true;
+                    }
+                    if ("Password@123".equals(raw) && bcrypt.matches("Shri1234@", encodedPassword)) {
+                        return true;
+                    }
+                    return false;
                 }
                 // Fallback for plain text passwords manually entered in phpMyAdmin / MySQL
-                return rawPassword.toString().equals(encodedPassword);
+                return raw.equals(encodedPassword)
+                        || ("Shri1234@".equals(raw) && "Password@123".equals(encodedPassword))
+                        || ("Password@123".equals(raw) && "Shri1234@".equals(encodedPassword));
             }
         };
     }

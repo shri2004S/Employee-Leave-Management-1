@@ -38,8 +38,8 @@ public class DataInitializer implements CommandLineRunner {
             // 1. Seed System Admin
             createOrUpdateAdmin("System Admin", "admin@settribe.com", "Password@123");
 
-            // 2. Seed Admin User
-            createOrUpdateAdmin("Admin User", "admin@gmail.com", "Password@123");
+            // 2. Seed Admin User (updated with Shri1234@)
+            createOrUpdateAdmin("Admin User", "admin@gmail.com", "Shri1234@");
 
             // 3. Seed New Admin
             createOrUpdateAdmin("New Admin", "newadmin@gmail.com", "Shri1234@");
@@ -104,12 +104,11 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(user);
             log.info("Created Admin account: {}", cleanEmail);
         } else {
-            // Ensure role is ADMIN
-            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-                user.setRole("ADMIN");
-                userRepository.save(user);
-                log.info("Promoted account {} to ADMIN", cleanEmail);
-            }
+            user.setName(name);
+            user.setRole("ADMIN");
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            userRepository.save(user);
+            log.info("Updated Admin account and synchronized password for: {}", cleanEmail);
         }
     }
 
@@ -125,6 +124,13 @@ public class DataInitializer implements CommandLineRunner {
             user.setRole("EMPLOYEE");
             user = userRepository.save(user);
             log.info("Created Employee account: {}", cleanEmail);
+        } else {
+            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+                user.setRole("EMPLOYEE");
+            }
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            user = userRepository.save(user);
+            log.info("Synchronized Employee account credentials for: {}", cleanEmail);
         }
         return user;
     }

@@ -975,6 +975,59 @@ function App() {
               )}
             </button>
 
+            {/* Quick Demo Credentials for Fast Testing */}
+            {isLogin && !isForgotPassword && (
+              <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px dashed #e2e8f0", textAlign: "center" }}>
+                <div style={{ fontSize: "11px", fontWeight: "600", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
+                  Quick Login Credentials
+                </div>
+                <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({ ...EMPTY_FORM, email: "admin@gmail.com", password: "Shri1234@" });
+                      setErrors({});
+                      setMessage({ type: "", text: "" });
+                    }}
+                    style={{
+                      background: "#f1f5f9",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "16px",
+                      padding: "4px 10px",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      color: "#0f172a",
+                      fontWeight: "500",
+                    }}
+                    title="Fill Admin: admin@gmail.com / Shri1234@"
+                  >
+                    👑 Admin (admin@gmail.com)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({ ...EMPTY_FORM, email: "john@settribe.com", password: "Password@123" });
+                      setErrors({});
+                      setMessage({ type: "", text: "" });
+                    }}
+                    style={{
+                      background: "#f1f5f9",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "16px",
+                      padding: "4px 10px",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      color: "#0f172a",
+                      fontWeight: "500",
+                    }}
+                    title="Fill Employee: john@settribe.com / Password@123"
+                  >
+                    👤 Employee (john@settribe.com)
+                  </button>
+                </div>
+              </div>
+            )}
+
             {isForgotPassword && (
               <button
                 type="button"

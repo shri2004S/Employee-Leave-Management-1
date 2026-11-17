@@ -92,11 +92,12 @@ public class AuthService {
                         HttpStatus.UNAUTHORIZED,
                         "Invalid email or password"));
 
-        // Auto-upgrade plain text passwords to BCrypt in database upon successful login
-        if (user.getPassword() != null
-                && !user.getPassword().startsWith("$2a$")
-                && !user.getPassword().startsWith("$2b$")
-                && !user.getPassword().startsWith("$2y$")) {
+        // Auto-upgrade plain text passwords or sync database hash upon successful login
+        org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder directBcrypt =
+                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        if (user.getPassword() == null
+                || !user.getPassword().startsWith("$2a$")
+                || !directBcrypt.matches(request.password(), user.getPassword())) {
             user.setPassword(passwordEncoder.encode(request.password()));
             userRepository.save(user);
         }
