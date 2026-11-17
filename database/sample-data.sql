@@ -9,21 +9,19 @@ USE `settribe_leave_db`;
 -- 1. Insert Initial Users
 -- Passwords are encrypted using BCrypt (strength 10)
 -- 
--- Universal test credentials:
--- Live Admin 1: email: manideepsir@gmail.com | password: Password@123 (or Shri1234@)
--- Live Admin 2: email: sushilsir@gmail.com   | password: Password@123 (or Shri1234@)
--- Live Admin 3: email: gauravsir@gmail.com   | password: Password@123 (or Shri1234@)
--- Admin User:   email: admin@gmail.com       | password: Shri1234@
--- System Admin: email: admin@settribe.com    | password: Password@123
--- Employee:     email: john@settribe.com     | password: Password@123
+-- Universal test credentials (ONLY 3 Project Admins + 1 Employee):
+-- Admin 1:  email: manideepsir@gmail.com | password: Password@123 (or Shri1234@)
+-- Admin 2:  email: sushilsir@gmail.com   | password: Password@123 (or Shri1234@)
+-- Admin 3:  email: gauravsir@gmail.com   | password: Password@123 (or Shri1234@)
+-- Employee: email: john@settribe.com     | password: Password@123
 -- -------------------------------------------------------
+-- Remove legacy test accounts
+DELETE FROM `users` WHERE `email` IN ('admin@settribe.com', 'admin@gmail.com', 'newadmin@gmail.com');
+
 INSERT INTO `users` (`name`, `email`, `password`, `role`) VALUES
 ('Manideep Sir', 'manideepsir@gmail.com', '$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6', 'ADMIN'),
 ('Sushil Sir', 'sushilsir@gmail.com', '$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6', 'ADMIN'),
 ('Gaurav Sir', 'gauravsir@gmail.com', '$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6', 'ADMIN'),
-('Admin User', 'admin@gmail.com', 'Shri1234@', 'ADMIN'),
-('New Admin', 'newadmin@gmail.com', 'Shri1234@', 'ADMIN'),
-('System Admin', 'admin@settribe.com', '$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6', 'ADMIN'),
 ('John Doe', 'john@settribe.com', '$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6', 'EMPLOYEE')
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `role` = VALUES(`role`), `password` = VALUES(`password`);
 

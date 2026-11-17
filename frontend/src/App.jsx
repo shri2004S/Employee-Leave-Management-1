@@ -1050,27 +1050,6 @@ function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setForm({ ...EMPTY_FORM, email: "admin@gmail.com", password: "Shri1234@" });
-                      setErrors({});
-                      setMessage({ type: "", text: "" });
-                    }}
-                    style={{
-                      background: "#f1f5f9",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "16px",
-                      padding: "4px 9px",
-                      fontSize: "11px",
-                      cursor: "pointer",
-                      color: "#0f172a",
-                      fontWeight: "500",
-                    }}
-                    title="Fill Admin: admin@gmail.com / Shri1234@"
-                  >
-                    👑 Admin
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
                       setForm({ ...EMPTY_FORM, email: "john@settribe.com", password: "Password@123" });
                       setErrors({});
                       setMessage({ type: "", text: "" });

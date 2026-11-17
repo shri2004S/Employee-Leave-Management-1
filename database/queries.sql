@@ -96,11 +96,11 @@ DELETE FROM leave_requests
 WHERE id = 1 AND status = 'PENDING' AND user_id = 2;
 
 -- -------------------------------------------------------
--- Query 10: Reset / Update Admin password (e.g. to Shri1234@ or Password@123)
+-- Query 10: Reset / Update Admin password (Manideep Sir / Sushil Sir / Gaurav Sir)
 -- -------------------------------------------------------
 UPDATE users 
-SET password = 'Shri1234@', role = 'ADMIN' 
-WHERE email = 'admin@gmail.com';
+SET password = 'Password@123', role = 'ADMIN' 
+WHERE email IN ('manideepsir@gmail.com', 'sushilsir@gmail.com', 'gauravsir@gmail.com');
 
 -- -------------------------------------------------------
 -- Query 11: Find all leaves assigned to specific admin (Manideep Sir / Sushil Sir / Gaurav Sir)

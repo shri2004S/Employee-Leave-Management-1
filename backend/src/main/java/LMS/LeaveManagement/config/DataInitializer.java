@@ -35,15 +35,27 @@ public class DataInitializer implements CommandLineRunner {
         try {
             log.info("Checking initial application data...");
 
-            // 1. Seed Live Admins requested: Manideep Sir, Sushil Sir, Gaurav Sir
+            // 1. Seed ONLY the Three Official Admins in the Project:
             createOrUpdateAdmin("Manideep Sir", "manideepsir@gmail.com", "Password@123");
             createOrUpdateAdmin("Sushil Sir", "sushilsir@gmail.com", "Password@123");
             createOrUpdateAdmin("Gaurav Sir", "gauravsir@gmail.com", "Password@123");
 
-            // 2. Seed System & Lead Admins
-            createOrUpdateAdmin("System Admin", "admin@settribe.com", "Password@123");
-            createOrUpdateAdmin("Admin User", "admin@gmail.com", "Shri1234@");
-            createOrUpdateAdmin("New Admin", "newadmin@gmail.com", "Shri1234@");
+            // 2. Purge legacy test admins so ONLY the three Sirs exist in the project
+            java.util.List<String> legacyAdminEmails = java.util.List.of(
+                    "admin@settribe.com",
+                    "admin@gmail.com",
+                    "newadmin@gmail.com"
+            );
+            for (String legacyEmail : legacyAdminEmails) {
+                userRepository.findByEmail(legacyEmail).ifPresent(user -> {
+                    try {
+                        userRepository.delete(user);
+                        log.info("Cleaned up legacy admin account: {}", legacyEmail);
+                    } catch (Exception ex) {
+                        log.warn("Could not remove legacy admin {}: {}", legacyEmail, ex.getMessage());
+                    }
+                });
+            }
 
             // 3. Seed Employee
             User john = createOrGetEmployee("John Doe", "john@settribe.com", "Password@123");

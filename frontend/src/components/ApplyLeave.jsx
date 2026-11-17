@@ -50,18 +50,18 @@ function ApplyLeave({ onLeaveSubmitted }) {
     fetchAdmins();
   }, []);
 
-  // Display admins with standard fallback if database is loading
-  const displayAdmins =
+  // Display ONLY the three official project admins: Manideep Sir, Sushil Sir, Gaurav Sir
+  const displayAdmins = (
     admins.length > 0
       ? admins
       : [
           { id: 1, name: "Manideep Sir", email: "manideepsir@gmail.com", role: "ADMIN" },
           { id: 2, name: "Sushil Sir", email: "sushilsir@gmail.com", role: "ADMIN" },
           { id: 3, name: "Gaurav Sir", email: "gauravsir@gmail.com", role: "ADMIN" },
-          { id: 4, name: "System Admin", email: "admin@settribe.com", role: "ADMIN" },
-          { id: 5, name: "Admin User", email: "admin@gmail.com", role: "ADMIN" },
-          { id: 6, name: "New Admin", email: "newadmin@gmail.com", role: "ADMIN" },
-        ];
+        ]
+  ).filter(
+    (a) => !["admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com"].includes(a.email)
+  );
 
   const leaveDays = useMemo(() => {
     if (!fromDate || !toDate || toDate < fromDate) return 0;
