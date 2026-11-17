@@ -12,9 +12,18 @@ function ApplyLeave({ onLeaveSubmitted }) {
   const [messageType, setMessageType] = useState("success");
   const [loading, setLoading] = useState(false);
 
-  // Approver / Admin Selection States
+  const OFFICIAL_ADMINS = useMemo(
+    () => [
+      { id: 1, name: "Manideep Sir", email: "manideepsir@gmail.com", role: "ADMIN", initial: "M", avatarClass: "avatar-m" },
+      { id: 2, name: "Sushil Sir", email: "sushilsir@gmail.com", role: "ADMIN", initial: "S", avatarClass: "avatar-s" },
+      { id: 3, name: "Gaurav Sir", email: "gauravsir@gmail.com", role: "ADMIN", initial: "G", avatarClass: "avatar-g" },
+    ],
+    []
+  );
+
+  // Approver / Admin Selection States (defaults to Manideep Sir)
   const [admins, setAdmins] = useState([]);
-  const [assignedAdmin, setAssignedAdmin] = useState("All Admins (Default)");
+  const [assignedAdmin, setAssignedAdmin] = useState("Manideep Sir (manideepsir@gmail.com)");
 
   const today = new Date();
   const localToday = [
@@ -50,18 +59,29 @@ function ApplyLeave({ onLeaveSubmitted }) {
     fetchAdmins();
   }, []);
 
-  // Display ONLY the three official project admins: Manideep Sir, Sushil Sir, Gaurav Sir
-  const displayAdmins = (
-    admins.length > 0
-      ? admins
-      : [
-          { id: 1, name: "Manideep Sir", email: "manideepsir@gmail.com", role: "ADMIN" },
-          { id: 2, name: "Sushil Sir", email: "sushilsir@gmail.com", role: "ADMIN" },
-          { id: 3, name: "Gaurav Sir", email: "gauravsir@gmail.com", role: "ADMIN" },
-        ]
-  ).filter(
-    (a) => !["admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com"].includes(a.email)
-  );
+  // Display strictly the three official project admins: Manideep Sir, Sushil Sir, Gaurav Sir
+  const displayAdmins = useMemo(() => {
+    const legacyEmails = new Set(["admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com"]);
+    const map = new Map();
+    // Default to the 3 official admins
+    OFFICIAL_ADMINS.forEach((adm) => {
+      map.set(adm.email.toLowerCase(), { ...adm });
+    });
+
+    // If backend returned admins, overlay matching ones (excluding legacy)
+    if (Array.isArray(admins)) {
+      admins.forEach((adm) => {
+        if (!adm || !adm.email) return;
+        const emailLower = adm.email.toLowerCase();
+        if (legacyEmails.has(emailLower)) return;
+        if (map.has(emailLower)) {
+          map.set(emailLower, { ...map.get(emailLower), ...adm });
+        }
+      });
+    }
+
+    return Array.from(map.values());
+  }, [admins, OFFICIAL_ADMINS]);
 
   const leaveDays = useMemo(() => {
     if (!fromDate || !toDate || toDate < fromDate) return 0;
@@ -107,7 +127,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
       fromDate,
       toDate,
       reason: reason.trim(),
-      assignedAdmin: assignedAdmin || "All Admins (Default)",
+      assignedAdmin: assignedAdmin || "Manideep Sir (manideepsir@gmail.com)",
     };
 
     setLoading(true);
@@ -257,38 +277,16 @@ function ApplyLeave({ onLeaveSubmitted }) {
           </select>
         </div>
 
-        {/* 2. Admin & Approver Selection (Requested Feature) */}
+        {/* 2. Admin & Approver Selection (Replaced All Administrators with 3 Admins) */}
         <div className="form-section-block approver-selection-section">
           <div className="label-with-counter">
             <label className="section-field-label">
               Send Request To (Select Admin / Approver) <span className="req-star">*</span>
             </label>
-            <span className="field-hint-text">Choose which admin or manager will review this request</span>
+            <span className="field-hint-text">Choose which admin will review this request</span>
           </div>
 
           <div className="approver-cards-grid">
-            {/* Global option */}
-            <button
-              type="button"
-              className={`approver-card ${assignedAdmin === "All Admins (Default)" ? "selected" : ""}`}
-              onClick={() => setAssignedAdmin("All Admins (Default)")}
-            >
-              <div className="approver-avatar all">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </div>
-              <div className="approver-info">
-                <strong>All Administrators</strong>
-                <small>Any available Admin can review</small>
-              </div>
-              <span className="approver-badge">GLOBAL</span>
-            </button>
-
-            {/* Individual Admins from DB */}
             {displayAdmins.map((adm) => {
               const fullVal = `${adm.name} (${adm.email})`;
               const isSelected = assignedAdmin === fullVal;
@@ -299,8 +297,8 @@ function ApplyLeave({ onLeaveSubmitted }) {
                   className={`approver-card ${isSelected ? "selected" : ""}`}
                   onClick={() => setAssignedAdmin(fullVal)}
                 >
-                  <div className="approver-avatar">
-                    {adm.name ? adm.name.charAt(0).toUpperCase() : "A"}
+                  <div className={`approver-avatar ${adm.avatarClass || "avatar-m"}`}>
+                    {adm.initial || (adm.name ? adm.name.charAt(0).toUpperCase() : "A")}
                   </div>
                   <div className="approver-info">
                     <strong>{adm.name}</strong>
