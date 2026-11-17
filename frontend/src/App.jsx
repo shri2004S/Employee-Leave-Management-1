@@ -987,7 +987,7 @@ function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setForm({ ...EMPTY_FORM, email: "manideepsir@gmail.com", password: "Password@123" });
+                      setForm({ ...EMPTY_FORM, email: "manideep@gmail.com", password: "Password@123" });
                       setErrors({});
                       setMessage({ type: "", text: "" });
                     }}
@@ -1001,14 +1001,14 @@ function App() {
                       color: "#1e40af",
                       fontWeight: "600",
                     }}
-                    title="Fill: manideepsir@gmail.com / Password@123"
+                    title="Fill: manideep@gmail.com / Password@123"
                   >
                     👑 Manideep Sir
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setForm({ ...EMPTY_FORM, email: "sushilsir@gmail.com", password: "Password@123" });
+                      setForm({ ...EMPTY_FORM, email: "sushil@gmail.com", password: "Password@123" });
                       setErrors({});
                       setMessage({ type: "", text: "" });
                     }}
@@ -1022,14 +1022,14 @@ function App() {
                       color: "#1e40af",
                       fontWeight: "600",
                     }}
-                    title="Fill: sushilsir@gmail.com / Password@123"
+                    title="Fill: sushil@gmail.com / Password@123"
                   >
                     👑 Sushil Sir
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setForm({ ...EMPTY_FORM, email: "gauravsir@gmail.com", password: "Password@123" });
+                      setForm({ ...EMPTY_FORM, email: "gaurav@gmail.com", password: "Password@123" });
                       setErrors({});
                       setMessage({ type: "", text: "" });
                     }}
@@ -1043,7 +1043,7 @@ function App() {
                       color: "#1e40af",
                       fontWeight: "600",
                     }}
-                    title="Fill: gauravsir@gmail.com / Password@123"
+                    title="Fill: gaurav@gmail.com / Password@123"
                   >
                     👑 Gaurav Sir
                   </button>

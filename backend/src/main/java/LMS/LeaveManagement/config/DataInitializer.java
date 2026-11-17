@@ -36,12 +36,15 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Checking initial application data...");
 
             // 1. Seed ONLY the Three Official Admins in the Project:
-            createOrUpdateAdmin("Manideep Sir", "manideepsir@gmail.com", "Password@123");
-            createOrUpdateAdmin("Sushil Sir", "sushilsir@gmail.com", "Password@123");
-            createOrUpdateAdmin("Gaurav Sir", "gauravsir@gmail.com", "Password@123");
+            createOrUpdateAdmin("Manideep Sir", "manideep@gmail.com", "Password@123");
+            createOrUpdateAdmin("Sushil Sir", "sushil@gmail.com", "Password@123");
+            createOrUpdateAdmin("Gaurav Sir", "gaurav@gmail.com", "Password@123");
 
             // 2. Purge legacy test admins so ONLY the three Sirs exist in the project
             java.util.List<String> legacyAdminEmails = java.util.List.of(
+                    "manideepsir@gmail.com",
+                    "sushilsir@gmail.com",
+                    "gauravsir@gmail.com",
                     "admin@settribe.com",
                     "admin@gmail.com",
                     "newadmin@gmail.com"
@@ -71,7 +74,7 @@ public class DataInitializer implements CommandLineRunner {
                 r1.setToDate(LocalDate.now().plusDays(4));
                 r1.setReason("Attending family wedding ceremony");
                 r1.setStatus("PENDING");
-                r1.setAssignedAdmin("Manideep Sir (manideepsir@gmail.com)");
+                r1.setAssignedAdmin("Manideep Sir (manideep@gmail.com)");
                 leaveRequestRepository.save(r1);
 
                 LeaveRequest r2 = new LeaveRequest();
@@ -81,7 +84,7 @@ public class DataInitializer implements CommandLineRunner {
                 r2.setToDate(LocalDate.now().minusDays(9));
                 r2.setReason("Severe fever and doctor consultation");
                 r2.setStatus("APPROVED");
-                r2.setAssignedAdmin("Sushil Sir (sushilsir@gmail.com)");
+                r2.setAssignedAdmin("Sushil Sir (sushil@gmail.com)");
                 leaveRequestRepository.save(r2);
 
                 LeaveRequest r3 = new LeaveRequest();
@@ -92,7 +95,7 @@ public class DataInitializer implements CommandLineRunner {
                 r3.setReason("Annual personal vacation");
                 r3.setStatus("REJECTED");
                 r3.setRejectionReason("High workload during sprint release");
-                r3.setAssignedAdmin("Gaurav Sir (gauravsir@gmail.com)");
+                r3.setAssignedAdmin("Gaurav Sir (gaurav@gmail.com)");
                 leaveRequestRepository.save(r3);
 
                 log.info("Sample leave requests created successfully.");

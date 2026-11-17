@@ -100,7 +100,7 @@ WHERE id = 1 AND status = 'PENDING' AND user_id = 2;
 -- -------------------------------------------------------
 UPDATE users 
 SET password = 'Password@123', role = 'ADMIN' 
-WHERE email IN ('manideepsir@gmail.com', 'sushilsir@gmail.com', 'gauravsir@gmail.com');
+WHERE email IN ('manideep@gmail.com', 'sushil@gmail.com', 'gaurav@gmail.com');
 
 -- -------------------------------------------------------
 -- Query 11: Find all leaves assigned to specific admin (Manideep Sir / Sushil Sir / Gaurav Sir)

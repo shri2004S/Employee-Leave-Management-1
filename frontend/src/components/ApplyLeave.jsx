@@ -14,16 +14,16 @@ function ApplyLeave({ onLeaveSubmitted }) {
 
   const OFFICIAL_ADMINS = useMemo(
     () => [
-      { id: 1, name: "Manideep Sir", email: "manideepsir@gmail.com", role: "ADMIN", initial: "M", avatarClass: "avatar-m" },
-      { id: 2, name: "Sushil Sir", email: "sushilsir@gmail.com", role: "ADMIN", initial: "S", avatarClass: "avatar-s" },
-      { id: 3, name: "Gaurav Sir", email: "gauravsir@gmail.com", role: "ADMIN", initial: "G", avatarClass: "avatar-g" },
+      { id: 1, name: "Manideep Sir", email: "manideep@gmail.com", role: "ADMIN", initial: "M", avatarClass: "avatar-m" },
+      { id: 2, name: "Sushil Sir", email: "sushil@gmail.com", role: "ADMIN", initial: "S", avatarClass: "avatar-s" },
+      { id: 3, name: "Gaurav Sir", email: "gaurav@gmail.com", role: "ADMIN", initial: "G", avatarClass: "avatar-g" },
     ],
     []
   );
 
   // Approver / Admin Selection States (defaults to Manideep Sir)
   const [admins, setAdmins] = useState([]);
-  const [assignedAdmin, setAssignedAdmin] = useState("Manideep Sir (manideepsir@gmail.com)");
+  const [assignedAdmin, setAssignedAdmin] = useState("Manideep Sir (manideep@gmail.com)");
 
   const today = new Date();
   const localToday = [
@@ -61,7 +61,14 @@ function ApplyLeave({ onLeaveSubmitted }) {
 
   // Display strictly the three official project admins: Manideep Sir, Sushil Sir, Gaurav Sir
   const displayAdmins = useMemo(() => {
-    const legacyEmails = new Set(["admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com"]);
+    const legacyEmails = new Set([
+      "manideepsir@gmail.com",
+      "sushilsir@gmail.com",
+      "gauravsir@gmail.com",
+      "admin@settribe.com",
+      "admin@gmail.com",
+      "newadmin@gmail.com",
+    ]);
     const map = new Map();
     // Default to the 3 official admins
     OFFICIAL_ADMINS.forEach((adm) => {
@@ -127,7 +134,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
       fromDate,
       toDate,
       reason: reason.trim(),
-      assignedAdmin: assignedAdmin || "Manideep Sir (manideepsir@gmail.com)",
+      assignedAdmin: assignedAdmin || "Manideep Sir (manideep@gmail.com)",
     };
 
     setLoading(true);

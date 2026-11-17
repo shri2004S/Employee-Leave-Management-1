@@ -55,19 +55,19 @@ public class AdminUserManagementTest {
         User manideep = new User();
         manideep.setId(1L);
         manideep.setName("Manideep Sir");
-        manideep.setEmail("manideepsir@gmail.com");
+        manideep.setEmail("manideep@gmail.com");
         manideep.setRole("ADMIN");
 
         User sushil = new User();
         sushil.setId(2L);
         sushil.setName("Sushil Sir");
-        sushil.setEmail("sushilsir@gmail.com");
+        sushil.setEmail("sushil@gmail.com");
         sushil.setRole("ADMIN");
 
         User gaurav = new User();
         gaurav.setId(3L);
         gaurav.setName("Gaurav Sir");
-        gaurav.setEmail("gauravsir@gmail.com");
+        gaurav.setEmail("gaurav@gmail.com");
         gaurav.setRole("ADMIN");
 
         assertThat(manideep.getRole()).isEqualTo("ADMIN");
@@ -107,19 +107,19 @@ public class AdminUserManagementTest {
         User u1 = new User();
         u1.setId(1L);
         u1.setName("Manideep Sir");
-        u1.setEmail("manideepsir@gmail.com");
+        u1.setEmail("manideep@gmail.com");
         u1.setRole("ADMIN");
 
         User u2 = new User();
         u2.setId(2L);
         u2.setName("Sushil Sir");
-        u2.setEmail("sushilsir@gmail.com");
+        u2.setEmail("sushil@gmail.com");
         u2.setRole("ADMIN");
 
         User u3 = new User();
         u3.setId(3L);
         u3.setName("Gaurav Sir");
-        u3.setEmail("gauravsir@gmail.com");
+        u3.setEmail("gaurav@gmail.com");
         u3.setRole("ADMIN");
 
         when(userRepository.findByRoleIgnoreCase("ADMIN")).thenReturn(List.of(u1, u2, u3));
@@ -149,9 +149,9 @@ public class AdminUserManagementTest {
         request.setToDate(LocalDate.now().plusDays(3));
         request.setReason("Personal work");
         request.setStatus("PENDING");
-        request.setAssignedAdmin("Manideep Sir (manideepsir@gmail.com)");
+        request.setAssignedAdmin("Manideep Sir (manideep@gmail.com)");
 
-        assertThat(request.getAssignedAdmin()).isEqualTo("Manideep Sir (manideepsir@gmail.com)");
+        assertThat(request.getAssignedAdmin()).isEqualTo("Manideep Sir (manideep@gmail.com)");
         assertThat(request.getStatus()).isEqualTo("PENDING");
         assertThat(request.getUser().getEmail()).isEqualTo("john@settribe.com");
     }
@@ -172,7 +172,7 @@ public class AdminUserManagementTest {
         existing.setToDate(LocalDate.now().plusDays(2));
         existing.setReason("Viral fever");
         existing.setStatus("PENDING");
-        existing.setAssignedAdmin("Sushil Sir (sushilsir@gmail.com)");
+        existing.setAssignedAdmin("Sushil Sir (sushil@gmail.com)");
 
         when(leaveRepository.findById(100L)).thenReturn(Optional.of(existing));
         when(leaveRepository.save(any(LeaveRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -180,7 +180,7 @@ public class AdminUserManagementTest {
         LeaveRequest updated = adminService.updateLeaveStatus(100L, "APPROVED");
 
         assertThat(updated.getStatus()).isEqualTo("APPROVED");
-        assertThat(updated.getAssignedAdmin()).isEqualTo("Sushil Sir (sushilsir@gmail.com)");
+        assertThat(updated.getAssignedAdmin()).isEqualTo("Sushil Sir (sushil@gmail.com)");
         verify(leaveRepository, times(1)).findById(100L);
         verify(leaveRepository, times(1)).save(existing);
     }

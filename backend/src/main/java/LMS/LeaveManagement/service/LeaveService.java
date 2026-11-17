@@ -151,7 +151,10 @@ public class LeaveService {
     }
 
     public List<java.util.Map<String, Object>> getAvailableAdmins() {
-        java.util.Set<String> legacy = java.util.Set.of("admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com");
+        java.util.Set<String> legacy = java.util.Set.of(
+            "manideepsir@gmail.com", "sushilsir@gmail.com", "gauravsir@gmail.com",
+            "admin@settribe.com", "admin@gmail.com", "newadmin@gmail.com"
+        );
         return userRepository.findByRoleIgnoreCase("ADMIN").stream()
             .filter(u -> u.getEmail() != null && !legacy.contains(u.getEmail().toLowerCase()))
             .map(u -> {
