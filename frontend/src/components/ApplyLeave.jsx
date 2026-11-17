@@ -145,7 +145,9 @@ function ApplyLeave({ onLeaveSubmitted }) {
       setMessageType("error");
       setMessage(
         error.message === "Failed to fetch"
-          ? "Cannot connect to the leave API. Check that Spring Boot is running on port 8080."
+          ? (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
+              ? "Cannot connect to leave API at https://leavehub-backend.onrender.com. Please try again in a moment."
+              : "Cannot connect to the leave API. Check that Spring Boot is running on port 8080.")
           : error.message
       );
     } finally {

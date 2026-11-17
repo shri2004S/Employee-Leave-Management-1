@@ -384,7 +384,9 @@ function App() {
         type: "error",
         text:
           error instanceof TypeError || error.message === "Failed to fetch"
-            ? "Cannot connect to backend. Ensure Spring Boot is running on port 8080."
+            ? (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
+                ? "Cannot reach backend (https://leavehub-backend.onrender.com). If the server was sleeping on Render Free Tier, please wait ~20-30 seconds and try again."
+                : "Cannot connect to backend. Ensure Spring Boot is running on port 8080.")
             : error.message,
       });
     } finally {
