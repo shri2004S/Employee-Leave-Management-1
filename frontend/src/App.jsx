@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ApplyLeave from "./components/ApplyLeave";
 import MyLeaveRequests from "./components/MyLeaveRequests";
 import AdminLeaveManagement from "./components/AdminLeaveManagement";
 import UserProfileModal from "./components/UserProfileModal";
-import illustration from "./assets/login.png";
 import "./App.css";
 
 // ================= VALIDATION HELPERS =================
@@ -131,6 +130,15 @@ function loadSavedUser() {
     localStorage.removeItem("leaveToken");
     return null;
   }
+}
+
+function getFormattedToday() {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date());
 }
 
 function App() {
@@ -283,13 +291,11 @@ function App() {
     try {
       // 1. FORGOT PASSWORD FLOW
       if (isForgotPassword) {
-        let data = {};
         try {
-          const response = await api.post(`${API_URL}/forgot-password`, {
+          await api.post(`${API_URL}/forgot-password`, {
             email: cleaned.email,
             newPassword: cleaned.password,
           });
-          data = response.data || {};
         } catch (err) {
           const resData = err.response?.data || {};
           throw new Error(resData.message || resData.detail || "Unable to reset password. Please check your email.");
@@ -454,12 +460,7 @@ function App() {
   };
 
   // Get formatted today date
-  const todayFormatted = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(new Date());
+  const todayFormatted = useMemo(() => getFormattedToday(), []);
 
   // ---------- DASHBOARD LAYOUT ----------
   if (user) {

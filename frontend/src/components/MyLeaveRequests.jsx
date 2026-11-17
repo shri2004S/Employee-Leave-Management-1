@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import "./MyLeaveRequests.css";
 
 import { LEAVES_API_URL as API_URL, api } from "../apiConfig";
+import { calculateLeaveDays, getLocalTodayString } from "../utils/dateUtils";
 
 function MyLeaveRequests({ refreshTrigger }) {
   const [leaves, setLeaves] = useState([]);
@@ -26,12 +27,7 @@ function MyLeaveRequests({ refreshTrigger }) {
   // Cancel Confirmation Modal State
   const [cancelModal, setCancelModal] = useState({ show: false, leaveId: null });
 
-  const today = new Date();
-  const localToday = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0"),
-  ].join("-");
+  const localToday = useMemo(() => getLocalTodayString(), []);
 
   async function fetchLeaves() {
     setLoading(true);
@@ -54,7 +50,32 @@ function MyLeaveRequests({ refreshTrigger }) {
   }
 
   useEffect(() => {
-    fetchLeaves();
+    let active = true;
+    async function loadLeaves() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await api.get(API_URL);
+        if (active) setLeaves(response.data || []);
+      } catch (err) {
+        if (!active) return;
+        const status = err.response?.status;
+        const resMsg = err.response?.data?.message;
+        setError(
+          status === 401
+            ? "Session expired. Please log in again."
+            : resMsg || err.message || "Unable to connect to the backend."
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadLeaves();
+    return () => {
+      active = false;
+    };
   }, [refreshTrigger]);
 
   // Statistics calculation for Employee
@@ -103,7 +124,6 @@ function MyLeaveRequests({ refreshTrigger }) {
     }
 
     setEditLoading(true);
-    const token = localStorage.getItem("leaveToken");
 
     try {
       await api.put(`${API_URL}/${editingLeave.id}`, {
@@ -137,7 +157,6 @@ function MyLeaveRequests({ refreshTrigger }) {
     setCancelModal({ show: false, leaveId: null });
     setError("");
     setSuccessMessage("");
-    const token = localStorage.getItem("leaveToken");
 
     try {
       await api.delete(`${API_URL}/${id}`);
@@ -170,13 +189,9 @@ function MyLeaveRequests({ refreshTrigger }) {
     });
   }, [leaves, statusFilter, typeFilter, searchTerm]);
 
-  // Helper for duration days
+  // Helper for duration days (calculates working days and calendar days)
   const getDaysCount = (from, to) => {
-    if (!from || !to) return 1;
-    const s = new Date(from);
-    const e = new Date(to);
-    const diff = Math.round((e - s) / 86400000) + 1;
-    return diff > 0 ? diff : 1;
+    return calculateLeaveDays(from, to);
   };
 
   return (
@@ -363,7 +378,7 @@ function MyLeaveRequests({ refreshTrigger }) {
             </thead>
             <tbody>
               {filteredLeaves.map((leave) => {
-                const days = getDaysCount(leave.fromDate, leave.toDate);
+                const duration = getDaysCount(leave.fromDate, leave.toDate);
                 const statusLower = String(leave.status).toLowerCase();
 
                 return (
@@ -381,8 +396,15 @@ function MyLeaveRequests({ refreshTrigger }) {
                     <td>
                       <div className="date-range-cell">
                         <span className="days-counter-pill">
-                          {days} {days === 1 ? "day" : "days"}
+                          {duration.workingDays > 0
+                            ? `${duration.workingDays} ${duration.workingDays === 1 ? "work day" : "work days"}`
+                            : `${duration.calendarDays} days (weekend)`}
                         </span>
+                        {duration.weekendDays > 0 && duration.workingDays > 0 && (
+                          <small style={{ fontSize: "10.5px", color: "#64748b", display: "block" }}>
+                            ({duration.calendarDays} cal. days)
+                          </small>
+                        )}
                         <span className="date-bounds">
                           {leave.fromDate} → {leave.toDate}
                         </span>

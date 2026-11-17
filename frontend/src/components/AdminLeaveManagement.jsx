@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import "./AdminLeaveManagement.css";
 
 import { ADMIN_API_URL, api } from "../apiConfig";
+import { calculateLeaveDays } from "../utils/dateUtils";
 
 function AdminLeaveManagement() {
   const [leaves, setLeaves] = useState([]);
@@ -52,7 +53,42 @@ function AdminLeaveManagement() {
   }
 
   useEffect(() => {
-    fetchAllLeaves();
+    let active = true;
+    async function loadLeaves() {
+      setLoading(true);
+      setError("");
+      const token = localStorage.getItem("leaveToken");
+      const user = localStorage.getItem("leaveUser");
+
+      if (!token && !user) {
+        if (active) {
+          setError("Admin session not found. Please log in.");
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await api.get(ADMIN_API_URL);
+        if (active) setLeaves(response.data || []);
+      } catch (err) {
+        if (!active) return;
+        const status = err.response?.status;
+        const resMsg = err.response?.data?.message;
+        setError(
+          status === 403
+            ? "Access Denied: You must be an ADMIN to access this portal."
+            : resMsg || err.message || "Failed to connect to the backend."
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadLeaves();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Trigger modal confirmation
@@ -74,7 +110,6 @@ function AdminLeaveManagement() {
     setActionLoadingId(id);
     setError("");
     setSuccessMessage("");
-    const token = localStorage.getItem("leaveToken");
 
     try {
       const response = await api.put(`${ADMIN_API_URL}/${id}/status`, {
@@ -127,13 +162,9 @@ function AdminLeaveManagement() {
     };
   }, [leaves]);
 
-  // Helper for duration days
+  // Helper for duration days (calculates working days excluding weekends)
   const getDaysCount = (from, to) => {
-    if (!from || !to) return 1;
-    const s = new Date(from);
-    const e = new Date(to);
-    const diff = Math.round((e - s) / 86400000) + 1;
-    return diff > 0 ? diff : 1;
+    return calculateLeaveDays(from, to);
   };
 
   // Helper for initials
@@ -366,8 +397,15 @@ function AdminLeaveManagement() {
                     <td>
                       <div className="admin-duration-cell">
                         <span className="admin-days-pill">
-                          {days} {days === 1 ? "day" : "days"}
+                          {days.workingDays > 0
+                            ? `${days.workingDays} ${days.workingDays === 1 ? "work day" : "work days"}`
+                            : `${days.calendarDays} days (weekend)`}
                         </span>
+                        {days.weekendDays > 0 && days.workingDays > 0 && (
+                          <small style={{ fontSize: "10.5px", color: "#64748b", display: "block" }}>
+                            ({days.calendarDays} cal. days)
+                          </small>
+                        )}
                         <span className="admin-date-range">
                           {leave.fromDate} → {leave.toDate}
                         </span>

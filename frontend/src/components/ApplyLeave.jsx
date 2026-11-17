@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./ApplyLeave.css";
 
 import { LEAVES_API_URL as API_URL, api } from "../apiConfig";
+import { calculateLeaveDays, getLocalTodayString } from "../utils/dateUtils";
 
 function ApplyLeave({ onLeaveSubmitted }) {
   const [leaveType, setLeaveType] = useState("CASUAL");
@@ -25,12 +26,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
   const [admins, setAdmins] = useState([]);
   const [assignedAdmin, setAssignedAdmin] = useState("Manideep Sir (manideep@gmail.com)");
 
-  const today = new Date();
-  const localToday = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0"),
-  ].join("-");
+  const localToday = useMemo(() => getLocalTodayString(), []);
 
   // Fetch available Admins from backend
   useEffect(() => {
@@ -79,12 +75,8 @@ function ApplyLeave({ onLeaveSubmitted }) {
     return Array.from(map.values());
   }, [admins, OFFICIAL_ADMINS]);
 
-  const leaveDays = useMemo(() => {
-    if (!fromDate || !toDate || toDate < fromDate) return 0;
-
-    const start = new Date(`${fromDate}T00:00:00`);
-    const end = new Date(`${toDate}T00:00:00`);
-    return Math.round((end - start) / 86400000) + 1;
+  const leaveDuration = useMemo(() => {
+    return calculateLeaveDays(fromDate, toDate);
   }, [fromDate, toDate]);
 
   async function handleSubmit(event) {
@@ -337,10 +329,19 @@ function ApplyLeave({ onLeaveSubmitted }) {
               </svg>
             </div>
             <div className="duration-text-group">
-              <span className="duration-sub-label">Total Duration</span>
+              <span className="duration-sub-label">Working Days Duration</span>
               <span className="duration-days-count">
-                {leaveDays} {leaveDays === 1 ? "Day" : "Days"}
+                {leaveDuration.workingDays > 0
+                  ? `${leaveDuration.workingDays} ${leaveDuration.workingDays === 1 ? "Working Day" : "Working Days"}`
+                  : leaveDuration.calendarDays > 0
+                  ? "0 Working Days (Weekend)"
+                  : "0 Days"}
               </span>
+              {leaveDuration.weekendDays > 0 && leaveDuration.calendarDays > 0 && (
+                <small style={{ fontSize: "11px", color: "#64748b", marginTop: "2px", display: "block" }}>
+                  ({leaveDuration.calendarDays} total days • {leaveDuration.weekendDays} weekend {leaveDuration.weekendDays === 1 ? "day" : "days"} excluded)
+                </small>
+              )}
             </div>
           </div>
         </div>
