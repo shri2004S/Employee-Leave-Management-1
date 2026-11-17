@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import "./MyLeaveRequests.css";
 
-import { LEAVES_API_URL as API_URL } from "../apiConfig";
+import { LEAVES_API_URL as API_URL, api } from "../apiConfig";
 
 function MyLeaveRequests({ refreshTrigger }) {
   const [leaves, setLeaves] = useState([]);
@@ -36,29 +36,18 @@ function MyLeaveRequests({ refreshTrigger }) {
   async function fetchLeaves() {
     setLoading(true);
     setError("");
-    const token = localStorage.getItem("leaveToken");
 
     try {
-      const headers = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(API_URL, {
-        credentials: "include",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          response.status === 401
-            ? "Session expired. Please log in again."
-            : `Unable to load requests (${response.status}).`
-        );
-      }
-
-      const data = await response.json();
-      setLeaves(data);
+      const response = await api.get(API_URL);
+      setLeaves(response.data || []);
     } catch (err) {
-      setError(err.message || "Unable to connect to the backend.");
+      const status = err.response?.status;
+      const resMsg = err.response?.data?.message;
+      setError(
+        status === 401
+          ? "Session expired. Please log in again."
+          : resMsg || err.message || "Unable to connect to the backend."
+      );
     } finally {
       setLoading(false);
     }
@@ -117,32 +106,19 @@ function MyLeaveRequests({ refreshTrigger }) {
     const token = localStorage.getItem("leaveToken");
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(`${API_URL}/${editingLeave.id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers,
-        body: JSON.stringify({
-          leaveType: editLeaveType,
-          fromDate: editFromDate,
-          toDate: editToDate,
-          reason: editReason.trim(),
-        }),
+      await api.put(`${API_URL}/${editingLeave.id}`, {
+        leaveType: editLeaveType,
+        fromDate: editFromDate,
+        toDate: editToDate,
+        reason: editReason.trim(),
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || `Failed to update leave request (${response.status})`);
-      }
 
       setSuccessMessage(`Leave request #${editingLeave.id} has been successfully updated!`);
       closeEditModal();
       fetchLeaves();
     } catch (err) {
-      setEditError(err.message || "Could not update leave request.");
+      const resMsg = err.response?.data?.message;
+      setEditError(resMsg || err.message || "Could not update leave request.");
     } finally {
       setEditLoading(false);
     }
@@ -164,25 +140,13 @@ function MyLeaveRequests({ refreshTrigger }) {
     const token = localStorage.getItem("leaveToken");
 
     try {
-      const headers = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-        headers,
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || `Failed to cancel leave request (${response.status})`);
-      }
+      await api.delete(`${API_URL}/${id}`);
 
       setSuccessMessage(`Leave request #${id} has been cancelled successfully.`);
       fetchLeaves();
     } catch (err) {
-      setError(err.message || "Failed to cancel leave request.");
+      const resMsg = err.response?.data?.message;
+      setError(resMsg || err.message || "Failed to cancel leave request.");
     }
   }
 

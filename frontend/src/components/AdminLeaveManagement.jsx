@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import "./AdminLeaveManagement.css";
 
-import { ADMIN_API_URL } from "../apiConfig";
+import { ADMIN_API_URL, api } from "../apiConfig";
 
 function AdminLeaveManagement() {
   const [leaves, setLeaves] = useState([]);
@@ -36,26 +36,16 @@ function AdminLeaveManagement() {
     }
 
     try {
-      const headers = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(ADMIN_API_URL, {
-        credentials: "include",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          response.status === 403
-            ? "Access Denied: You must be an ADMIN to access this portal."
-            : `Failed to load requests (${response.status}).`
-        );
-      }
-
-      const data = await response.json();
-      setLeaves(data);
+      const response = await api.get(ADMIN_API_URL);
+      setLeaves(response.data || []);
     } catch (err) {
-      setError(err.message || "Failed to connect to the backend.");
+      const status = err.response?.status;
+      const resMsg = err.response?.data?.message;
+      setError(
+        status === 403
+          ? "Access Denied: You must be an ADMIN to access this portal."
+          : resMsg || err.message || "Failed to connect to the backend."
+      );
     } finally {
       setLoading(false);
     }
@@ -87,26 +77,16 @@ function AdminLeaveManagement() {
     const token = localStorage.getItem("leaveToken");
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(`${ADMIN_API_URL}/${id}/status`, {
-        method: "PUT",
-        credentials: "include",
-        headers,
-        body: JSON.stringify({ status: newStatus }),
+      const response = await api.put(`${ADMIN_API_URL}/${id}/status`, {
+        status: newStatus,
       });
 
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || `Failed to update status (${response.status})`);
-      }
-
+      const data = response.data || {};
       setSuccessMessage(data.message || `Leave application #${id} has been ${newStatus}.`);
       fetchAllLeaves();
     } catch (err) {
-      setError(err.message || "Failed to update leave request status.");
+      const resMsg = err.response?.data?.message;
+      setError(resMsg || err.message || "Failed to update leave request status.");
     } finally {
       setActionLoadingId(null);
     }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./ApplyLeave.css";
 
-import { LEAVES_API_URL as API_URL } from "../apiConfig";
+import { LEAVES_API_URL as API_URL, api } from "../apiConfig";
 
 function ApplyLeave({ onLeaveSubmitted }) {
   const [leaveType, setLeaveType] = useState("CASUAL");
@@ -36,20 +36,9 @@ function ApplyLeave({ onLeaveSubmitted }) {
   useEffect(() => {
     async function fetchAdmins() {
       try {
-        const token = localStorage.getItem("leaveToken");
-        const headers = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        const response = await fetch(`${API_URL}/admins`, {
-          credentials: "include",
-          headers,
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setAdmins(data);
-          }
+        const response = await api.get(`${API_URL}/admins`);
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setAdmins(response.data);
         }
       } catch (err) {
         console.error("Failed to load admins:", err);
@@ -140,25 +129,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
     setLoading(true);
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(API_URL, {
-        method: "POST",
-        credentials: "include",
-        headers,
-        body: JSON.stringify(leaveData),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-          data.detail ||
-          `Unable to submit leave request (${response.status}).`
-        );
-      }
+      await api.post(API_URL, leaveData);
 
       setMessageType("success");
       setMessage(
@@ -173,12 +144,14 @@ function ApplyLeave({ onLeaveSubmitted }) {
       }
     } catch (error) {
       setMessageType("error");
+      const resMsg = error.response?.data?.message || error.response?.data?.detail;
       setMessage(
-        error.message === "Failed to fetch"
-          ? (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
-              ? "Cannot connect to leave API at https://leavehub-backend.onrender.com. Please try again in a moment."
-              : "Cannot connect to the leave API. Check that Spring Boot is running on port 8080.")
-          : error.message
+        resMsg ||
+          (error.message === "Network Error" || !error.response
+            ? (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
+                ? "Cannot connect to leave API at https://leavehub-backend.onrender.com. Please try again in a moment."
+                : "Cannot connect to the leave API. Check that Spring Boot is running on port 8080.")
+            : error.message)
       );
     } finally {
       setLoading(false);

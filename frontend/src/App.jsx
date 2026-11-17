@@ -117,7 +117,7 @@ function passwordStrength(value) {
 }
 // ======================================================
 
-import { AUTH_API_URL as API_URL } from "./apiConfig";
+import { AUTH_API_URL as API_URL, api } from "./apiConfig";
 const STRENGTH_LABELS = ["Too weak", "Weak", "Fair", "Good", "Strong"];
 
 const EMPTY_FORM = { name: "", email: "", password: "", confirmPassword: "" };
@@ -151,21 +151,8 @@ function App() {
   useEffect(() => {
     async function verifySession() {
       try {
-        const token = localStorage.getItem("leaveToken");
-        const headers = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        const response = await fetch(`${API_URL}/me`, {
-          method: "GET",
-          credentials: "include",
-          headers,
-        });
-
-        if (!response.ok) {
-          throw new Error("Session expired");
-        }
-
-        const currentUser = await response.json();
+        const response = await api.get(`${API_URL}/me`);
+        const currentUser = response.data;
         const normalized = normalizeUserRole(currentUser);
 
         localStorage.setItem("leaveUser", JSON.stringify(normalized));
@@ -296,20 +283,16 @@ function App() {
     try {
       // 1. FORGOT PASSWORD FLOW
       if (isForgotPassword) {
-        const response = await fetch(`${API_URL}/forgot-password`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
+        let data = {};
+        try {
+          const response = await api.post(`${API_URL}/forgot-password`, {
             email: cleaned.email,
             newPassword: cleaned.password,
-          }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(data.message || data.detail || "Unable to reset password. Please check your email.");
+          });
+          data = response.data || {};
+        } catch (err) {
+          const resData = err.response?.data || {};
+          throw new Error(resData.message || resData.detail || "Unable to reset password. Please check your email.");
         }
 
         // On reset success: Show popup modal
@@ -336,26 +319,23 @@ function App() {
         ? { email: cleaned.email, password: cleaned.password }
         : { name: cleaned.name, email: cleaned.email, password: cleaned.password };
 
-      const response = await fetch(`${API_URL}/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        if (data.errors && typeof data.errors === "object" && !Array.isArray(data.errors)) {
-          setErrors((prev) => ({ ...prev, ...data.errors }));
+      let data;
+      try {
+        const response = await api.post(`${API_URL}/${endpoint}`, body);
+        data = response.data;
+      } catch (err) {
+        const resData = err.response?.data || {};
+        const status = err.response?.status;
+        if (resData.errors && typeof resData.errors === "object" && !Array.isArray(resData.errors)) {
+          setErrors((prev) => ({ ...prev, ...resData.errors }));
         }
         const fallback =
-          response.status === 401
+          status === 401
             ? "Invalid email or password."
-            : response.status === 409
+            : status === 409
             ? "An account with this email already exists."
             : "Authentication failed. Please try again.";
-        throw new Error(data.message || data.detail || fallback);
+        throw new Error(resData.message || resData.detail || fallback);
       }
 
       if (!isLogin) {
@@ -416,15 +396,7 @@ function App() {
 
   async function logout() {
     try {
-      const token = localStorage.getItem("leaveToken");
-      const headers = {};
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      await fetch(`${API_URL}/logout`, {
-        method: "POST",
-        credentials: "include",
-        headers,
-      });
+      await api.post(`${API_URL}/logout`);
     } catch (error) {
       console.error("Logout request failed:", error);
     } finally {
