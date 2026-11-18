@@ -177,10 +177,11 @@ public class AdminUserManagementTest {
         when(leaveRepository.findById(100L)).thenReturn(Optional.of(existing));
         when(leaveRepository.save(any(LeaveRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        LeaveRequest updated = adminService.updateLeaveStatus(100L, "APPROVED");
+        Map<String, Object> updated = adminService.updateLeaveStatus(100L, "APPROVED");
 
-        assertThat(updated.getStatus()).isEqualTo("APPROVED");
-        assertThat(updated.getAssignedAdmin()).isEqualTo("Sushil Sir (sushil@gmail.com)");
+        assertThat(updated.get("status")).isEqualTo("APPROVED");
+        assertThat(existing.getStatus()).isEqualTo("APPROVED");
+        assertThat(existing.getAssignedAdmin()).isEqualTo("Sushil Sir (sushil@gmail.com)");
         verify(leaveRepository, times(1)).findById(100L);
         verify(leaveRepository, times(1)).save(existing);
     }

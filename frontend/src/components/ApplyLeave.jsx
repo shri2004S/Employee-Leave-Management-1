@@ -110,12 +110,14 @@ function ApplyLeave({ onLeaveSubmitted }) {
       return;
     }
 
+    const targetAdmin = assignedAdmin || "Manideep Sir (manideep@gmail.com)";
     const leaveData = {
       leaveType,
       fromDate,
       toDate,
       reason: reason.trim(),
-      assignedAdmin: assignedAdmin || "Manideep Sir (manideep@gmail.com)",
+      assignedAdmin: targetAdmin,
+      sharedWith: targetAdmin,
     };
 
     setLoading(true);

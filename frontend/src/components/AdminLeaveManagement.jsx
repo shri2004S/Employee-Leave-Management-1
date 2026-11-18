@@ -14,7 +14,17 @@ function AdminLeaveManagement() {
   // Filters
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
+  const [approverFilter, setApproverFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const currentUser = useMemo(() => {
+    try {
+      const saved = localStorage.getItem("leaveUser");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -138,6 +148,11 @@ function AdminLeaveManagement() {
         typeFilter === "ALL" ||
         leave.leaveType.toUpperCase() === typeFilter.toUpperCase();
 
+      const matchApprover =
+        approverFilter === "ALL" ||
+        (leave.assignedAdmin && leave.assignedAdmin.toLowerCase().includes(approverFilter.toLowerCase())) ||
+        (leave.sharedWith && leave.sharedWith.toLowerCase().includes(approverFilter.toLowerCase()));
+
       const matchSearch =
         !searchTerm.trim() ||
         (leave.employeeName &&
@@ -146,11 +161,15 @@ function AdminLeaveManagement() {
           leave.employeeEmail.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (leave.reason &&
           leave.reason.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (leave.assignedAdmin &&
+          leave.assignedAdmin.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (leave.sharedWith &&
+          leave.sharedWith.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (leave.id && String(leave.id).includes(searchTerm.trim()));
 
-      return matchStatus && matchType && matchSearch;
+      return matchStatus && matchType && matchApprover && matchSearch;
     });
-  }, [leaves, statusFilter, typeFilter, searchTerm]);
+  }, [leaves, statusFilter, typeFilter, approverFilter, searchTerm]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -288,6 +307,20 @@ function AdminLeaveManagement() {
           </div>
 
           <div className="admin-select-field">
+            <label htmlFor="adminApproverFilter">Approver:</label>
+            <select
+              id="adminApproverFilter"
+              value={approverFilter}
+              onChange={(e) => setApproverFilter(e.target.value)}
+            >
+              <option value="ALL">All Approvers</option>
+              <option value="manideep">Manideep Sir</option>
+              <option value="sushil">Sushil Sir</option>
+              <option value="gaurav">Gaurav Sir</option>
+            </select>
+          </div>
+
+          <div className="admin-select-field">
             <label htmlFor="adminTypeFilter">Leave Type:</label>
             <select
               id="adminTypeFilter"
@@ -384,6 +417,16 @@ function AdminLeaveManagement() {
                           <span className="emp-assigned-badge" title={`Assigned To: ${leave.assignedAdmin || "All Admins"}`}>
                             To: {leave.assignedAdmin || "All Admins"}
                           </span>
+                          {currentUser?.email && leave.assignedAdmin && leave.assignedAdmin.toLowerCase().includes(currentUser.email.toLowerCase()) && (
+                            <span className="emp-assigned-badge" style={{ background: "#dcfce7", color: "#15803d", borderColor: "#86efac", fontWeight: 700 }} title="Assigned directly to you">
+                              ⭐ Assigned to You
+                            </span>
+                          )}
+                          {leave.sharedWith && leave.sharedWith !== leave.assignedAdmin && (
+                            <span className="emp-shared-badge" title={`Shared With: ${leave.sharedWith}`}>
+                              CC: {leave.sharedWith}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>

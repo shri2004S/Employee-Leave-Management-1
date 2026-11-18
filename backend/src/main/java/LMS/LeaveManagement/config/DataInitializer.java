@@ -75,6 +75,7 @@ public class DataInitializer implements CommandLineRunner {
                 r1.setReason("Attending family wedding ceremony");
                 r1.setStatus("PENDING");
                 r1.setAssignedAdmin("Manideep Sir (manideep@gmail.com)");
+                r1.setSharedWith("Manideep Sir (manideep@gmail.com)");
                 leaveRequestRepository.save(r1);
 
                 LeaveRequest r2 = new LeaveRequest();
@@ -85,6 +86,7 @@ public class DataInitializer implements CommandLineRunner {
                 r2.setReason("Severe fever and doctor consultation");
                 r2.setStatus("APPROVED");
                 r2.setAssignedAdmin("Sushil Sir (sushil@gmail.com)");
+                r2.setSharedWith("Sushil Sir (sushil@gmail.com)");
                 leaveRequestRepository.save(r2);
 
                 LeaveRequest r3 = new LeaveRequest();
@@ -96,9 +98,28 @@ public class DataInitializer implements CommandLineRunner {
                 r3.setStatus("REJECTED");
                 r3.setRejectionReason("High workload during sprint release");
                 r3.setAssignedAdmin("Gaurav Sir (gaurav@gmail.com)");
+                r3.setSharedWith("Gaurav Sir (gaurav@gmail.com)");
                 leaveRequestRepository.save(r3);
 
                 log.info("Sample leave requests created successfully.");
+            } else if (john != null) {
+                // Ensure at least one pending leave request is assigned to Manideep Sir
+                boolean hasManideepLeave = leaveRequestRepository.findAll().stream()
+                        .anyMatch(l -> l.getAssignedAdmin() != null && l.getAssignedAdmin().contains("manideep@gmail.com"));
+
+                if (!hasManideepLeave) {
+                    LeaveRequest rm = new LeaveRequest();
+                    rm.setUser(john);
+                    rm.setLeaveType("CASUAL");
+                    rm.setFromDate(LocalDate.now().plusDays(1));
+                    rm.setToDate(LocalDate.now().plusDays(3));
+                    rm.setReason("Important personal matters requiring attention");
+                    rm.setStatus("PENDING");
+                    rm.setAssignedAdmin("Manideep Sir (manideep@gmail.com)");
+                    rm.setSharedWith("Manideep Sir (manideep@gmail.com)");
+                    leaveRequestRepository.save(rm);
+                    log.info("Created pending leave request specifically assigned to Manideep Sir");
+                }
             }
 
             log.info("Application data initialization completed successfully.");

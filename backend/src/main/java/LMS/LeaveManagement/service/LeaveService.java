@@ -70,6 +70,12 @@ public class LeaveService {
         request.setId(null);
         request.setUser(user);
         request.setStatus("PENDING");
+        if (request.getAssignedAdmin() == null || request.getAssignedAdmin().isBlank()) {
+            request.setAssignedAdmin("Manideep Sir (manideep@gmail.com)");
+        }
+        if (request.getSharedWith() == null || request.getSharedWith().isBlank()) {
+            request.setSharedWith(request.getAssignedAdmin());
+        }
 
         return leaveRepository.save(request);
     }

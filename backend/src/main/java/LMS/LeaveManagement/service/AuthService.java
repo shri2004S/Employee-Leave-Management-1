@@ -54,7 +54,8 @@ public class AuthService {
         user.setName(request.name().trim());
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole("EMPLOYEE");
+        String initialRole = isOfficialAdminEmail(email) ? "ADMIN" : "EMPLOYEE";
+        user.setRole(initialRole);
 
         userRepository.saveAndFlush(user);
 
@@ -62,14 +63,14 @@ public class AuthService {
                 org.springframework.security.core.userdetails.User
                         .withUsername(user.getEmail())
                         .password(user.getPassword())
-                        .roles(user.getRole())
+                        .roles(initialRole)
                         .build();
 
         String token = jwtService.generateToken(details);
 
         return new AuthResponse(
                 token, "Bearer", user.getId(),
-                user.getName(), user.getEmail(), user.getRole());
+                user.getName(), user.getEmail(), initialRole);
     }
 
     @Transactional
