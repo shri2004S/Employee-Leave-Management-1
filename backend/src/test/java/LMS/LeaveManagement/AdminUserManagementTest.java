@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -175,7 +174,7 @@ public class AdminUserManagementTest {
         existing.setAssignedAdmin("Sushil Sir (sushil@gmail.com)");
 
         when(leaveRepository.findById(100L)).thenReturn(Optional.of(existing));
-        when(leaveRepository.save(any(LeaveRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(leaveRepository.save(any(LeaveRequest.class))).thenReturn(existing);
 
         Map<String, Object> updated = adminService.updateLeaveStatus(100L, "APPROVED");
 

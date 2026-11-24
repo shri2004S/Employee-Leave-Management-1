@@ -92,6 +92,10 @@ public class LeaveService {
 
     @Transactional
     public LeaveRequest updateLeave(Long id, LeaveRequest updatedRequest, Authentication authentication) {
+        if (id == null) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Leave ID is required");
+        }
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
@@ -216,6 +220,10 @@ public class LeaveService {
 
     @Transactional
     public void deleteLeave(Long id, Authentication authentication) {
+        if (id == null) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Leave ID is required");
+        }
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)

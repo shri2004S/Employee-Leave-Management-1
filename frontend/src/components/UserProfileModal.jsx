@@ -1,11 +1,23 @@
 import React from "react";
 import "./UserProfileModal.css";
 
+function getRoleBadgeLabel(isSuperAdmin, isAdmin) {
+  if (isSuperAdmin) return "Super Administrator";
+  if (isAdmin) return "Administrator";
+  return "Employee";
+}
+
+function getSystemRoleDescription(isSuperAdmin, isAdmin) {
+  if (isSuperAdmin) return "Super Administrator (Highest Privilege)";
+  if (isAdmin) return "System Administrator (ADMIN)";
+  return "Staff Member (EMPLOYEE)";
+}
+
 export default function UserProfileModal({ user, onClose, onLogout }) {
   if (!user) return null;
 
-  const isAdmin = user.role === "ADMIN";
   const isSuperAdmin = user.email?.trim().toLowerCase() === "superadmin@gmail.com";
+  const isAdmin = isSuperAdmin || user.role === "ADMIN";
   const displayName = isSuperAdmin ? "Super Admin" : (user.name || "Employee");
   const initials = isSuperAdmin ? "SA" : (displayName || user.email || "U")
     .replace(/[()]/g, "")
@@ -24,14 +36,32 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
       })
     : "Active Member";
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+  };
+
   return (
-    <div className="profile-modal-backdrop" onClick={onClose}>
-      <div className="profile-modal-container" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="profile-modal-backdrop"
+      onClick={onClose}
+      onKeyDown={handleKeyDown}
+      role="presentation"
+    >
+      <div
+        className="profile-modal-container"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-modal-title"
+      >
         {/* Header */}
         <div className="profile-modal-header">
           <div className="profile-header-title">
             <span className="profile-eyebrow">USER ACCOUNT</span>
-            <h2>Profile Details</h2>
+            <h2 id="profile-modal-title">Profile Details</h2>
           </div>
           <button className="profile-close-btn" onClick={onClose} aria-label="Close Profile">
             &times;
@@ -44,18 +74,18 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
           <div className="profile-hero-info">
             <div className="profile-hero-name-row">
               <h3 className="profile-name">{displayName}</h3>
-              <span className={`profile-role-badge ${isSuperAdmin ? "super" : user.role?.toLowerCase()}`}>
-                {isSuperAdmin ? "Super Administrator" : isAdmin ? "Administrator" : "Employee"}
+              <span className={`profile-role-badge ${isSuperAdmin ? "super" : (user.role || "").toLowerCase()}`}>
+                {getRoleBadgeLabel(isSuperAdmin, isAdmin)}
               </span>
             </div>
             <p className="profile-email">{user.email}</p>
             <div className="profile-badges-row">
               <span className="profile-status-pill">
-                <span className="status-dot-pulse"></span>
-                Active Account
+                <span className="status-dot-pulse" aria-hidden="true"></span>
+                {" "}Active Account
               </span>
               <span className="profile-id-pill">
-                User ID: #{user.userId || user.id || "1"}
+                {" "}User ID: #{user.userId || user.id || "1"}
               </span>
             </div>
           </div>
@@ -65,7 +95,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
         <div className="profile-details-grid">
           <div className="profile-detail-card">
             <div className="detail-icon-wrap blue">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
@@ -78,7 +108,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
 
           <div className="profile-detail-card">
             <div className="detail-icon-wrap purple">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                 <polyline points="22,6 12,13 2,6"></polyline>
               </svg>
@@ -91,7 +121,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
 
           <div className="profile-detail-card">
             <div className="detail-icon-wrap amber">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
               </svg>
@@ -99,18 +129,14 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
             <div className="detail-text-wrap">
               <span className="detail-label">System Role</span>
               <span className="detail-value">
-                {isSuperAdmin
-                  ? "Super Administrator (Highest Privilege)"
-                  : isAdmin
-                  ? "System Administrator (ADMIN)"
-                  : "Staff Member (EMPLOYEE)"}
+                {getSystemRoleDescription(isSuperAdmin, isAdmin)}
               </span>
             </div>
           </div>
 
           <div className="profile-detail-card">
             <div className="detail-icon-wrap green">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
             </div>
@@ -122,7 +148,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
 
           <div className="profile-detail-card">
             <div className="detail-icon-wrap teal">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -139,7 +165,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
         {/* Permissions & Capabilities Box */}
         <div className="profile-permissions-box">
           <div className="permissions-box-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 11 12 14 22 4"></polyline>
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             </svg>
@@ -148,46 +174,46 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
           <ul className="permissions-list">
             {isSuperAdmin && (
               <li>
-                <span className="check-bullet">&#10003;</span>
-                <strong>Super Admin Privilege:</strong> Provision and manage Administrator accounts using Email ID and Password
+                <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                {" "}<strong>Super Admin Privilege:</strong> Provision and manage Administrator accounts using Email ID and Password
               </li>
             )}
             {isAdmin ? (
               <>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  Review, approve, or reject all employee leave applications organization-wide
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}Review, approve, or reject all employee leave applications organization-wide
                 </li>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  Access Admin Command Center with real-time application counters and statistics
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}Access Admin Command Center with real-time application counters and statistics
                 </li>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  View full employee history, rejection notes, and audit timestamps
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}View full employee history, rejection notes, and audit timestamps
                 </li>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  Switch between Admin View and Personal Employee Leave View anytime
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}Switch between Admin View and Personal Employee Leave View anytime
                 </li>
               </>
             ) : (
               <>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  Apply for Casual, Sick, and Earned leaves with date-range picker
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}Apply for Casual, Sick, and Earned leaves with date-range picker
                 </li>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  Track real-time approval status (Pending, Approved, or Rejected)
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}Track real-time approval status (Pending, Approved, or Rejected)
                 </li>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  Edit or cancel pending leave requests prior to administrator review
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}Edit or cancel pending leave requests prior to administrator review
                 </li>
                 <li>
-                  <span className="check-bullet">&#10003;</span>
-                  View personal leave history and official administrative remarks
+                  <span className="check-bullet" aria-hidden="true">&#10003;</span>
+                  {" "}View personal leave history and official administrative remarks
                 </li>
               </>
             )}
@@ -197,7 +223,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
         {/* Footer Actions */}
         <div className="profile-modal-footer">
           <button className="profile-signout-btn" onClick={onLogout}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -212,4 +238,3 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
     </div>
   );
 }
-

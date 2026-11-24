@@ -47,6 +47,10 @@ public class AdminService {
     }
 
     public Map<String, Object> updateLeaveStatus(Long id, String newStatus) {
+        if (id == null) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "Leave ID is required");
+        }
         if (newStatus == null || 
             (!newStatus.equalsIgnoreCase("APPROVED") && !newStatus.equalsIgnoreCase("REJECTED"))) {
             throw new ResponseStatusException(

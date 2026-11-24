@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api/health")
 public class HealthController {
 
     private final DataSource dataSource;
@@ -22,12 +23,12 @@ public class HealthController {
         this.dataSource = dataSource;
     }
 
-    @GetMapping("/api/health")
+    @GetMapping
     public ResponseEntity<Map<String, String>> health() {
         return ResponseEntity.ok(Map.of("status", "UP"));
     }
 
-    @GetMapping("/api/health/db")
+    @GetMapping("/db")
     public ResponseEntity<Map<String, Object>> dbHealth() {
         Map<String, Object> response = new LinkedHashMap<>();
         long startTime = System.currentTimeMillis();

@@ -41,7 +41,7 @@ public class AuthController {
     // Create JWT authentication cookie
     private ResponseCookie createAuthCookie(String token) {
 
-        return ResponseCookie.from(COOKIE_NAME, token)
+        return ResponseCookie.from(COOKIE_NAME, token != null ? token : "")
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .path("/")

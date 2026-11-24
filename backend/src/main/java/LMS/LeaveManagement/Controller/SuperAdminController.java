@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/admin/users")
 public class SuperAdminController {
 
+    private static final String SUPER_ADMIN_EMAIL = "superadmin@gmail.com";
+    private static final String ROLE_ADMIN = "ADMIN";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -33,7 +36,7 @@ public class SuperAdminController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
         String email = authentication.getName().trim().toLowerCase();
-        if (!"superadmin@gmail.com".equals(email)) {
+        if (!SUPER_ADMIN_EMAIL.equals(email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied: Only Super Admin can access this resource");
         }
     }
@@ -43,12 +46,12 @@ public class SuperAdminController {
         verifySuperAdmin(authentication);
 
         List<Map<String, Object>> admins = userRepository.findAll().stream()
-                .filter(u -> "ADMIN".equalsIgnoreCase(u.getRole()))
+                .filter(u -> ROLE_ADMIN.equalsIgnoreCase(u.getRole()))
                 .sorted((a, b) -> a.getId().compareTo(b.getId()))
                 .map(u -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", u.getId());
-                    map.put("name", "superadmin@gmail.com".equalsIgnoreCase(u.getEmail()) ? "Super Admin" : u.getName());
+                    map.put("name", SUPER_ADMIN_EMAIL.equalsIgnoreCase(u.getEmail()) ? "Super Admin" : u.getName());
                     map.put("email", u.getEmail());
                     map.put("role", u.getRole());
                     map.put("createdAt", u.getCreatedAt() != null ? u.getCreatedAt().toString() : "");
@@ -85,17 +88,21 @@ public class SuperAdminController {
         String cleanName;
         if (request.name() != null && !request.name().trim().isBlank()) {
             cleanName = request.name().trim();
-            // Validate name does not contain numbers
-            if (cleanName.matches(".*\\d.*")) {
+            // Validate name does not contain numbers (O(n) character inspection without backtracking)
+            if (cleanName.chars().anyMatch(Character::isDigit)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Numbers are not allowed in name. Please use only letters.");
             }
         } else {
             cleanName = generateAdminName(cleanEmail);
         }
 
-        // Validate password complexity
+        // Validate password complexity (O(n) character checks, eliminating regex super-linear runtime)
         String pwd = request.password();
-        if (pwd.length() < 6 || !pwd.matches(".*[a-z].*") || !pwd.matches(".*[A-Z].*") || !pwd.matches(".*\\d.*")) {
+        boolean hasLower = pwd != null && pwd.chars().anyMatch(Character::isLowerCase);
+        boolean hasUpper = pwd != null && pwd.chars().anyMatch(Character::isUpperCase);
+        boolean hasDigit = pwd != null && pwd.chars().anyMatch(Character::isDigit);
+
+        if (pwd == null || pwd.length() < 6 || !hasLower || !hasUpper || !hasDigit) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 6 characters and contain uppercase, lowercase, and a number.");
         }
 
@@ -107,7 +114,7 @@ public class SuperAdminController {
         newAdmin.setName(cleanName);
         newAdmin.setEmail(cleanEmail);
         newAdmin.setPassword(passwordEncoder.encode(pwd));
-        newAdmin.setRole("ADMIN");
+        newAdmin.setRole(ROLE_ADMIN);
 
         User saved = userRepository.save(newAdmin);
 

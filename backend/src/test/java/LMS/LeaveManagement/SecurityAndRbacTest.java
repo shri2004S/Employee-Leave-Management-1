@@ -143,16 +143,18 @@ public class SecurityAndRbacTest {
         req.setStatus("PENDING");
 
         when(leaveRepository.findById(10L)).thenReturn(Optional.of(req));
-        when(leaveRepository.save(any(LeaveRequest.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(leaveRepository.save(any(LeaveRequest.class))).thenReturn(req);
 
         ResponseEntity<Map<String, Object>> resApproved =
                 adminLeaveController.updateLeaveStatus(10L, Map.of("status", "APPROVED"));
         assertThat(resApproved.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resApproved.getBody()).isNotNull();
         assertThat(resApproved.getBody().get("status")).isEqualTo("APPROVED");
 
         ResponseEntity<Map<String, Object>> resRejected =
                 adminLeaveController.updateLeaveStatus(10L, Map.of("status", "REJECTED"));
         assertThat(resRejected.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resRejected.getBody()).isNotNull();
         assertThat(resRejected.getBody().get("status")).isEqualTo("REJECTED");
     }
 

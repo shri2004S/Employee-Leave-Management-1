@@ -422,8 +422,8 @@ function App() {
 
   // ---------- DASHBOARD LAYOUT ----------
   if (user) {
-    const isAdmin = user.role === "ADMIN";
     const isSuperAdmin = user?.email?.trim().toLowerCase() === "superadmin@gmail.com";
+    const isAdmin = isSuperAdmin || user.role === "ADMIN";
     const displayName = isSuperAdmin ? "Super Admin" : (user?.name || "Employee");
     const displayRole = isSuperAdmin ? "SUPER ADMIN" : user?.role;
     const initials = isSuperAdmin ? "SA" : getInitials(displayName, user?.email);
