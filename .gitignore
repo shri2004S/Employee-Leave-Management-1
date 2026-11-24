@@ -18,6 +18,7 @@ frontend/.pnpm-store/
 
 # IDE configurations
 .idea/
+.vscode/
 *.iml
 *.iws
 *.ipr
@@ -25,12 +26,14 @@ frontend/.pnpm-store/
 .classpath
 .project
 
+# Postman & local scratch
+.postman/
+postman/
+scratch/
+Leave-Management/
+Employee-Leave-Management-1/
+
 # Environment & credentials
 .env
 .env.*
 !.env.example
-
-# Nested clone
-Employee-Leave-Management-1/
-
-
