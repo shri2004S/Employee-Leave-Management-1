@@ -39,9 +39,17 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    private static final java.util.Set<String> OFFICIAL_ADMIN_EMAILS = java.util.Set.of(
+            "shri1@gmail.com",
+            "shri@gmail.com",
+            "superadmin@gmail.com",
+            "admin@settribe.com",
+            "manideep@gmail.com",
+            "sushil@gmail.com",
+            "gaurav@gmail.com");
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-
         String email = request.email().trim().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
@@ -50,42 +58,36 @@ public class AuthService {
                     "Email is already registered");
         }
 
+        // All users registered through the registration form are ALWAYS EMPLOYEES
         User user = new User();
         user.setName(request.name().trim());
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.password()));
-        String initialRole = isOfficialAdminEmail(email) ? "ADMIN" : "EMPLOYEE";
-        user.setRole(initialRole);
+        user.setRole("EMPLOYEE");
 
         userRepository.saveAndFlush(user);
 
-        UserDetails details =
-                org.springframework.security.core.userdetails.User
-                        .withUsername(user.getEmail())
-                        .password(user.getPassword())
-                        .roles(initialRole)
-                        .build();
+        UserDetails details = org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles("EMPLOYEE")
+                .build();
 
         String token = jwtService.generateToken(details);
 
         return new AuthResponse(
                 token, "Bearer", user.getId(),
-                user.getName(), user.getEmail(), initialRole);
+                user.getName(), user.getEmail(), "EMPLOYEE");
     }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-
         String email = request.email() != null ? request.email().trim().toLowerCase() : "";
-        String password = request.password();
-
-        // 1. Ensure official project admins (Manideep Sir, Sushil Sir, Gaurav Sir) exist and have ADMIN role
-        syncOfficialAdmin(email, password);
+        String password = request.password() != null ? request.password() : "";
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            email, request.password()));
+                    new UsernamePasswordAuthenticationToken(email, password));
         } catch (AuthenticationException ex) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
@@ -97,123 +99,94 @@ public class AuthService {
                         HttpStatus.UNAUTHORIZED,
                         "Invalid email or password"));
 
-        // If official admin, guarantee role is ADMIN in entity and token
+        // Enforce ADMIN role for official admin emails or preserve DB role
+        String effectiveRole;
         if (isOfficialAdminEmail(email)) {
+            effectiveRole = "ADMIN";
+            boolean userUpdated = false;
             if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
                 user.setRole("ADMIN");
-                userRepository.save(user);
+                userUpdated = true;
             }
+            if ("superadmin@gmail.com".equalsIgnoreCase(email) && !"Super Admin".equalsIgnoreCase(user.getName())) {
+                user.setName("Super Admin");
+                userUpdated = true;
+            }
+            if (userUpdated) {
+                try {
+                    userRepository.save(user);
+                } catch (Exception ignored) {
+                }
+            }
+        } else {
+            effectiveRole = (user.getRole() != null && !user.getRole().isBlank())
+                    ? user.getRole().trim().toUpperCase()
+                    : "EMPLOYEE";
         }
 
-        // Auto-upgrade plain text passwords or sync database hash upon successful login
-        org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder directBcrypt =
-                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
-        if (user.getPassword() == null
-                || !user.getPassword().startsWith("$2a$")
-                || !directBcrypt.matches(request.password(), user.getPassword())) {
-            user.setPassword(passwordEncoder.encode(request.password()));
-            userRepository.save(user);
-        }
-
-        String effectiveRole = isOfficialAdminEmail(email) ? "ADMIN" : user.getRole();
-
-        UserDetails details =
-                org.springframework.security.core.userdetails.User
-                        .withUsername(user.getEmail())
-                        .password(user.getPassword())
-                        .roles(effectiveRole)
-                        .build();
+        UserDetails details = org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles(effectiveRole)
+                .build();
 
         String token = jwtService.generateToken(details);
 
+        String displayName = "superadmin@gmail.com".equalsIgnoreCase(user.getEmail())
+                ? "Super Admin"
+                : (user.getName() != null ? user.getName() : "User");
+
         return new AuthResponse(
                 token, "Bearer", user.getId(),
-                user.getName(), user.getEmail(), effectiveRole);
+                displayName, user.getEmail(), effectiveRole);
     }
 
     private boolean isOfficialAdminEmail(String email) {
-        if (email == null) return false;
-        return java.util.Set.of(
-                "manideep@gmail.com", "manideepsir@gmail.com",
-                "sushil@gmail.com", "sushilsir@gmail.com",
-                "gaurav@gmail.com", "gauravsir@gmail.com"
-        ).contains(email.toLowerCase());
-    }
-
-    private void syncOfficialAdmin(String email, String rawPassword) {
-        if (email == null || !isOfficialAdminEmail(email)) return;
-
-        java.util.Map<String, String> officialNames = java.util.Map.of(
-                "manideep@gmail.com", "Manideep Sir",
-                "manideepsir@gmail.com", "Manideep Sir",
-                "sushil@gmail.com", "Sushil Sir",
-                "sushilsir@gmail.com", "Sushil Sir",
-                "gaurav@gmail.com", "Gaurav Sir",
-                "gauravsir@gmail.com", "Gaurav Sir"
-        );
-
-        String officialName = officialNames.getOrDefault(email.toLowerCase(), "Admin");
-        User user = userRepository.findByEmail(email.toLowerCase()).orElse(null);
-
-        if (user == null) {
-            user = new User();
-            user.setEmail(email.toLowerCase());
-            user.setName(officialName);
-            user.setRole("ADMIN");
-            user.setPassword(passwordEncoder.encode(
-                    rawPassword != null && !rawPassword.isEmpty() ? rawPassword : "Password@123"
-            ));
-            userRepository.saveAndFlush(user);
-        } else {
-            boolean changed = false;
-            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-                user.setRole("ADMIN");
-                changed = true;
-            }
-            if (user.getName() == null || !user.getName().equals(officialName)) {
-                user.setName(officialName);
-                changed = true;
-            }
-            if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-                if ("Password@123".equals(rawPassword) || "Shri1234@".equals(rawPassword)) {
-                    user.setPassword(passwordEncoder.encode(rawPassword));
-                    changed = true;
-                }
-            }
-            if (changed) {
-                userRepository.saveAndFlush(user);
-            }
-        }
+        if (email == null)
+            return false;
+        return OFFICIAL_ADMIN_EMAILS.contains(email.toLowerCase().trim());
     }
 
     @Transactional
     public Map<String, String> resetPassword(ForgotPasswordRequest request) {
-        String email = request.email().trim().toLowerCase();
-
+        String email = request.email() != null ? request.email().trim().toLowerCase() : "";
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "No account found with this email address. Please check and try again."));
+                        "No account found with this email"));
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
 
-        return Map.of("message", "Password reset successfully. Please login with your new password.");
+        return Map.of("message", "Password has been successfully reset");
+    }
+
+    @Transactional
+    public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
+        return resetPassword(request);
     }
 
     @Transactional(readOnly = true)
-public Map<String, Object> getCurrentUser(String email) {
+    public Map<String, Object> getCurrentUser(String email) {
+        String cleanEmail = email != null ? email.trim().toLowerCase() : "";
+        User user = userRepository.findByEmail(cleanEmail)
+                .or(() -> userRepository.findByEmail(email))
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "User not found"));
 
-    User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "User not found"));
+        String role = (user.getRole() != null && !user.getRole().isBlank())
+                ? user.getRole().trim().toUpperCase()
+                : (isOfficialAdminEmail(user.getEmail()) ? "ADMIN" : "EMPLOYEE");
 
-    return Map.of(
-            "userId", user.getId(),
-            "name", user.getName(),
-            "email", user.getEmail(),
-            "role", user.getRole()
-    );
-}
+        String displayName = "superadmin@gmail.com".equalsIgnoreCase(user.getEmail())
+                ? "Super Admin"
+                : (user.getName() != null ? user.getName() : "User");
+
+        return Map.of(
+                "userId", user.getId(),
+                "name", displayName,
+                "email", user.getEmail(),
+                "role", role);
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -33,37 +34,20 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            log.info("Checking initial application data...");
+            log.info("Checking initial application data in Neon PostgreSQL...");
 
-            // 1. Seed ONLY the Three Official Admins in the Project:
+            // 1. Seed Official Admins & Super Admin
+            createOrUpdateAdmin("Super Admin", "superadmin@gmail.com", "Password@123");
+            createOrUpdateAdmin("Shri (Admin)", "shri1@gmail.com", "Password@123");
+            createOrUpdateAdmin("Shri (Admin)", "shri@gmail.com", "Password@123");
             createOrUpdateAdmin("Manideep Sir", "manideep@gmail.com", "Password@123");
             createOrUpdateAdmin("Sushil Sir", "sushil@gmail.com", "Password@123");
             createOrUpdateAdmin("Gaurav Sir", "gaurav@gmail.com", "Password@123");
 
-            // 2. Purge legacy test admins so ONLY the three Sirs exist in the project
-            java.util.List<String> legacyAdminEmails = java.util.List.of(
-                    "manideepsir@gmail.com",
-                    "sushilsir@gmail.com",
-                    "gauravsir@gmail.com",
-                    "admin@settribe.com",
-                    "admin@gmail.com",
-                    "newadmin@gmail.com"
-            );
-            for (String legacyEmail : legacyAdminEmails) {
-                userRepository.findByEmail(legacyEmail).ifPresent(user -> {
-                    try {
-                        userRepository.delete(user);
-                        log.info("Cleaned up legacy admin account: {}", legacyEmail);
-                    } catch (Exception ex) {
-                        log.warn("Could not remove legacy admin {}: {}", legacyEmail, ex.getMessage());
-                    }
-                });
-            }
-
-            // 3. Seed Employee
+            // 2. Seed Employee
             User john = createOrGetEmployee("John Doe", "john@settribe.com", "Password@123");
 
-            // 4. Seed Sample Leave Requests if table is empty
+            // 3. Seed Sample Leave Requests if table is empty
             if (leaveRequestRepository.count() == 0 && john != null) {
                 log.info("Seeding initial sample leave requests for employee {}...", john.getEmail());
 
@@ -88,88 +72,57 @@ public class DataInitializer implements CommandLineRunner {
                 r2.setAssignedAdmin("Sushil Sir (sushil@gmail.com)");
                 r2.setSharedWith("Sushil Sir (sushil@gmail.com)");
                 leaveRequestRepository.save(r2);
-
-                LeaveRequest r3 = new LeaveRequest();
-                r3.setUser(john);
-                r3.setLeaveType("EARNED");
-                r3.setFromDate(LocalDate.now().minusDays(30));
-                r3.setToDate(LocalDate.now().minusDays(26));
-                r3.setReason("Annual personal vacation");
-                r3.setStatus("REJECTED");
-                r3.setRejectionReason("High workload during sprint release");
-                r3.setAssignedAdmin("Gaurav Sir (gaurav@gmail.com)");
-                r3.setSharedWith("Gaurav Sir (gaurav@gmail.com)");
-                leaveRequestRepository.save(r3);
-
-                log.info("Sample leave requests created successfully.");
-            } else if (john != null) {
-                // Ensure at least one pending leave request is assigned to Manideep Sir
-                boolean hasManideepLeave = leaveRequestRepository.findAll().stream()
-                        .anyMatch(l -> l.getAssignedAdmin() != null && l.getAssignedAdmin().contains("manideep@gmail.com"));
-
-                if (!hasManideepLeave) {
-                    LeaveRequest rm = new LeaveRequest();
-                    rm.setUser(john);
-                    rm.setLeaveType("CASUAL");
-                    rm.setFromDate(LocalDate.now().plusDays(1));
-                    rm.setToDate(LocalDate.now().plusDays(3));
-                    rm.setReason("Important personal matters requiring attention");
-                    rm.setStatus("PENDING");
-                    rm.setAssignedAdmin("Manideep Sir (manideep@gmail.com)");
-                    rm.setSharedWith("Manideep Sir (manideep@gmail.com)");
-                    leaveRequestRepository.save(rm);
-                    log.info("Created pending leave request specifically assigned to Manideep Sir");
-                }
             }
 
-            log.info("Application data initialization completed successfully.");
+            log.info("Initial application data check completed successfully.");
         } catch (Exception ex) {
-            log.warn("Data initialization encountered an exception: {}", ex.getMessage());
+            log.warn("Notice: DataInitializer ran with notice: {}", ex.getMessage());
         }
     }
 
-    private void createOrUpdateAdmin(String name, String email, String rawPassword) {
-        String cleanEmail = email.trim().toLowerCase();
-        User user = userRepository.findByEmail(cleanEmail).orElse(null);
-
-        if (user == null) {
-            user = new User();
-            user.setName(name);
-            user.setEmail(cleanEmail);
-            user.setPassword(passwordEncoder.encode(rawPassword));
-            user.setRole("ADMIN");
-            userRepository.save(user);
-            log.info("Created Admin account: {}", cleanEmail);
-        } else {
-            user.setName(name);
-            user.setRole("ADMIN");
-            user.setPassword(passwordEncoder.encode(rawPassword));
-            userRepository.save(user);
-            log.info("Updated Admin account and synchronized password for: {}", cleanEmail);
-        }
+    private void createOrUpdateAdmin(String name, String email, String password) {
+        userRepository.findByEmail(email).ifPresentOrElse(
+                user -> {
+                    boolean changed = false;
+                    if (name != null && !name.equalsIgnoreCase(user.getName())) {
+                        user.setName(name);
+                        changed = true;
+                    }
+                    if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+                        user.setRole("ADMIN");
+                        changed = true;
+                    }
+                    if (!passwordEncoder.matches(password, user.getPassword())
+                            && !passwordEncoder.matches("Shri1234@", user.getPassword())) {
+                        user.setPassword(passwordEncoder.encode(password));
+                        changed = true;
+                        log.info("Synchronized official admin credentials for: {}", email);
+                    }
+                    if (changed) {
+                        userRepository.save(user);
+                    }
+                },
+                () -> {
+                    User admin = new User();
+                    admin.setName(name);
+                    admin.setEmail(email);
+                    admin.setPassword(passwordEncoder.encode(password));
+                    admin.setRole("ADMIN");
+                    userRepository.save(admin);
+                    log.info("Created Admin account: {}", email);
+                });
     }
 
-    private User createOrGetEmployee(String name, String email, String rawPassword) {
-        String cleanEmail = email.trim().toLowerCase();
-        User user = userRepository.findByEmail(cleanEmail).orElse(null);
-
-        if (user == null) {
-            user = new User();
-            user.setName(name);
-            user.setEmail(cleanEmail);
-            user.setPassword(passwordEncoder.encode(rawPassword));
-            user.setRole("EMPLOYEE");
-            user = userRepository.save(user);
-            log.info("Created Employee account: {}", cleanEmail);
-        } else {
-            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
-                user.setRole("EMPLOYEE");
-            }
-            user.setPassword(passwordEncoder.encode(rawPassword));
-            user = userRepository.save(user);
-            log.info("Synchronized Employee account credentials for: {}", cleanEmail);
-        }
-        return user;
+    private User createOrGetEmployee(String name, String email, String password) {
+        return userRepository.findByEmail(email).orElseGet(() -> {
+            User emp = new User();
+            emp.setName(name);
+            emp.setEmail(email);
+            emp.setPassword(passwordEncoder.encode(password));
+            emp.setRole("EMPLOYEE");
+            User saved = userRepository.save(emp);
+            log.info("Created test employee account: {}", email);
+            return saved;
+        });
     }
 }
-

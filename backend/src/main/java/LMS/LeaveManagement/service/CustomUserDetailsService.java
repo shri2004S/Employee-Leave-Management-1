@@ -11,25 +11,29 @@ import LMS.LeaveManagement.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private static final Set<String> OFFICIAL_ADMIN_EMAILS = Set.of(
-            "manideep@gmail.com", "manideepsir@gmail.com",
-            "sushil@gmail.com", "sushilsir@gmail.com",
-            "gaurav@gmail.com", "gauravsir@gmail.com"
-    );
-
     private final UserRepository userRepository;
+
+    private static final java.util.Set<String> OFFICIAL_ADMIN_EMAILS = java.util.Set.of(
+            "shri1@gmail.com",
+            "shri@gmail.com",
+            "superadmin@gmail.com",
+            "admin@settribe.com",
+            "manideep@gmail.com",
+            "sushil@gmail.com",
+            "gaurav@gmail.com");
 
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     private boolean isOfficialAdmin(String email) {
-        return email != null && OFFICIAL_ADMIN_EMAILS.contains(email.trim().toLowerCase());
+        if (email == null)
+            return false;
+        return OFFICIAL_ADMIN_EMAILS.contains(email.trim().toLowerCase());
     }
 
     @Override
@@ -41,12 +45,14 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .or(() -> userRepository.findByEmail(email))
                 .orElse(null);
 
-        // Auto-provision official admin if missing in cloud database
+        // Auto-provision official admin if missing in Neon database
         if (user == null && isOfficialAdmin(cleanEmail)) {
             user = new User();
             user.setEmail(cleanEmail);
-            user.setName(cleanEmail.contains("manideep") ? "Manideep Sir"
-                    : cleanEmail.contains("sushil") ? "Sushil Sir" : "Gaurav Sir");
+            user.setName(cleanEmail.contains("superadmin") ? "Super Admin"
+                    : cleanEmail.contains("manideep") ? "Manideep Sir"
+                            : cleanEmail.contains("sushil") ? "Sushil Sir"
+                                    : cleanEmail.contains("gaurav") ? "Gaurav Sir" : "Shri (Admin)");
             user.setRole("ADMIN");
             user.setPassword("$2a$10$baN/1DaM95ALzvOHcy6FPeXLvk.sZXXHwciSnSNAaeOfi666iaGI6");
             try {
@@ -61,7 +67,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         boolean adminUser = isOfficialAdmin(cleanEmail) || isOfficialAdmin(user.getEmail());
 
-        // Self-heal role in database to ADMIN for official project admins
         if (adminUser && !"ADMIN".equalsIgnoreCase(user.getRole())) {
             user.setRole("ADMIN");
             try {
@@ -70,7 +75,8 @@ public class CustomUserDetailsService implements UserDetailsService {
             }
         }
 
-        String rawRole = adminUser ? "ADMIN" : (user.getRole() != null ? user.getRole().trim().toUpperCase() : "EMPLOYEE");
+        String rawRole = adminUser ? "ADMIN"
+                : (user.getRole() != null ? user.getRole().trim().toUpperCase() : "EMPLOYEE");
         String cleanRole = rawRole.startsWith("ROLE_") ? rawRole.substring(5) : rawRole;
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();

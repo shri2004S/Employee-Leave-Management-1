@@ -2,121 +2,24 @@ import { useState, useEffect, useMemo } from "react";
 import ApplyLeave from "./components/ApplyLeave";
 import MyLeaveRequests from "./components/MyLeaveRequests";
 import AdminLeaveManagement from "./components/AdminLeaveManagement";
+import SuperAdminManagement from "./components/SuperAdminManagement";
 import UserProfileModal from "./components/UserProfileModal";
 import "./App.css";
 
-// ================= VALIDATION HELPERS =================
-// Client-side validators for auth forms.
-// Each returns an error string, or "" when valid.
+import {
+  EMAIL_REGEX,
+  LIMITS,
+  normalizeUserRole,
+  validateName,
+  validateEmail,
+  validatePassword,
+  validateConfirmPassword,
+  validateAuthForm,
+  passwordStrength,
+  getInitials,
+} from "./utils/validationUtils";
 
-const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
-const NAME_REGEX = /^[A-Za-z\s.'-]+$/;
-
-const LIMITS = {
-  NAME_MIN: 3,
-  NAME_MAX: 100,
-  EMAIL_MAX: 254,
-  PASSWORD_MIN: 6,
-  PASSWORD_MAX: 72, // BCrypt limit
-};
-
-const OFFICIAL_ADMIN_EMAILS = new Set([
-  "manideep@gmail.com",
-  "sushil@gmail.com",
-  "gaurav@gmail.com",
-  "manideepsir@gmail.com",
-  "sushilsir@gmail.com",
-  "gauravsir@gmail.com",
-]);
-
-function normalizeUserRole(userObj) {
-  if (!userObj) return userObj;
-  if (userObj.email && OFFICIAL_ADMIN_EMAILS.has(userObj.email.trim().toLowerCase())) {
-    return { ...userObj, role: "ADMIN" };
-  }
-  return userObj;
-}
-
-function validateName(value) {
-  const raw = value ?? "";
-  const v = raw.trim();
-  if (!v) return "Full name is required.";
-  // REQUIREMENT: Name input must NOT allow numbers - only letters!
-  if (/\d/.test(raw)) return "Numbers are not allowed in name. Please use only letters.";
-  if (v.length < LIMITS.NAME_MIN) return `Name must be at least ${LIMITS.NAME_MIN} characters.`;
-  if (v.length > LIMITS.NAME_MAX) return `Name must be at most ${LIMITS.NAME_MAX} characters.`;
-  if (!NAME_REGEX.test(v)) return "Name can contain only letters, spaces, . ' and -.";
-  return "";
-}
-
-function validateEmail(value) {
-  const v = (value ?? "").trim();
-  if (!v) return "Email is required.";
-  if (v.length > LIMITS.EMAIL_MAX) return "Email is too long.";
-  if (!EMAIL_REGEX.test(v)) return "Enter a valid email address (e.g. you@example.com).";
-  return "";
-}
-
-// mode: "login" -> only presence; "register" / "reset" -> full strength rules
-function validatePassword(value, mode = "register") {
-  const v = value ?? "";
-  if (!v) return "Password is required.";
-  if (v.length > LIMITS.PASSWORD_MAX) return `Password must be at most ${LIMITS.PASSWORD_MAX} characters.`;
-  if (mode === "login") return "";
-
-  if (v.length < LIMITS.PASSWORD_MIN) return `Password must be at least ${LIMITS.PASSWORD_MIN} characters.`;
-  if (/\s/.test(v)) return "Password must not contain spaces.";
-  if (!/[a-z]/.test(v)) return "Password needs at least one lowercase letter.";
-  if (!/[A-Z]/.test(v)) return "Password needs at least one uppercase letter.";
-  if (!/\d/.test(v)) return "Password needs at least one number.";
-  return "";
-}
-
-function validateConfirmPassword(password, confirm) {
-  if (!confirm) return "Please confirm your password.";
-  if (password !== confirm) return "Passwords do not match.";
-  return "";
-}
-
-// Returns an object of { field: errorMessage } for only the invalid fields.
-function validateAuthForm(values, isLogin, isForgotPassword = false) {
-  const errors = {};
-  const email = validateEmail(values.email);
-  if (email) errors.email = email;
-
-  if (isForgotPassword) {
-    const password = validatePassword(values.password, "reset");
-    if (password) errors.password = password;
-    const confirm = validateConfirmPassword(values.password, values.confirmPassword);
-    if (confirm) errors.confirmPassword = confirm;
-    return errors;
-  }
-
-  const password = validatePassword(values.password, isLogin ? "login" : "register");
-  if (password) errors.password = password;
-
-  if (!isLogin) {
-    const name = validateName(values.name);
-    if (name) errors.name = name;
-    const confirm = validateConfirmPassword(values.password, values.confirmPassword);
-    if (confirm) errors.confirmPassword = confirm;
-  }
-  return errors;
-}
-
-// 0–4 score for a strength meter.
-function passwordStrength(value) {
-  const v = value ?? "";
-  let score = 0;
-  if (v.length >= LIMITS.PASSWORD_MIN) score++;
-  if (/[a-z]/.test(v) && /[A-Z]/.test(v)) score++;
-  if (/\d/.test(v)) score++;
-  if (/[^A-Za-z0-9]/.test(v)) score++;
-  return score;
-}
-// ======================================================
-
-import { AUTH_API_URL as API_URL, api } from "./apiConfig";
+import { AUTH_API_URL as API_URL, ADMIN_USERS_API_URL, api } from "./apiConfig";
 const STRENGTH_LABELS = ["Too weak", "Weak", "Fair", "Good", "Strong"];
 
 const EMPTY_FORM = { name: "", email: "", password: "", confirmPassword: "" };
@@ -124,7 +27,9 @@ const EMPTY_FORM = { name: "", email: "", password: "", confirmPassword: "" };
 function loadSavedUser() {
   try {
     const saved = localStorage.getItem("leaveUser");
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    return normalizeUserRole(parsed);
   } catch {
     localStorage.removeItem("leaveUser");
     localStorage.removeItem("leaveToken");
@@ -151,10 +56,61 @@ function App() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [activeTab, setActiveTab] = useState("EMPLOYEE"); // "EMPLOYEE" or "ADMIN"
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = loadSavedUser();
+    return saved?.role === "ADMIN" ? "ADMIN" : "EMPLOYEE";
+  });
   const [user, setUser] = useState(loadSavedUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [adminModalEmail, setAdminModalEmail] = useState("");
+  const [adminModalPassword, setAdminModalPassword] = useState("");
+  const [adminModalLoading, setAdminModalLoading] = useState(false);
+  const [adminModalError, setAdminModalError] = useState("");
+  const [adminModalSuccess, setAdminModalSuccess] = useState("");
+
+  async function handleQuickAddAdmin(e) {
+    e.preventDefault();
+    setAdminModalError("");
+    setAdminModalSuccess("");
+
+    const email = adminModalEmail.trim().toLowerCase();
+    const password = adminModalPassword;
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      setAdminModalError("Please enter a valid email address.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setAdminModalError("Password must be at least 6 characters.");
+      return;
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+      setAdminModalError("Password must contain uppercase, lowercase, and a number.");
+      return;
+    }
+
+    setAdminModalLoading(true);
+    try {
+      const res = await api.post(`${ADMIN_USERS_API_URL}/create-admin`, {
+        email,
+        password,
+      });
+      setAdminModalSuccess(res.data?.message || `Admin account for ${email} created successfully!`);
+      setAdminModalEmail("");
+      setAdminModalPassword("");
+      setTimeout(() => {
+        setShowAddAdminModal(false);
+        setAdminModalSuccess("");
+        setActiveTab("ADMIN");
+      }, 1500);
+    } catch (err) {
+      setAdminModalError(err.response?.data?.message || err.message || "Failed to create admin.");
+    } finally {
+      setAdminModalLoading(false);
+    }
+  }
 
   useEffect(() => {
     async function verifySession() {
@@ -330,6 +286,13 @@ function App() {
         const response = await api.post(`${API_URL}/${endpoint}`, body);
         data = response.data;
       } catch (err) {
+        if (!err.response || err.message === "Network Error" || err.code === "ERR_NETWORK") {
+          throw new Error(
+            typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
+              ? "Cannot reach backend. If the free server instance was sleeping on Render, please wait ~20-30 seconds and try again."
+              : "Cannot connect to backend server. Ensure Spring Boot is running on port 8080."
+          );
+        }
         const resData = err.response?.data || {};
         const status = err.response?.status;
         if (resData.errors && typeof resData.errors === "object" && !Array.isArray(resData.errors)) {
@@ -339,9 +302,14 @@ function App() {
           status === 401
             ? "Invalid email or password."
             : status === 409
-            ? "An account with this email already exists."
+            ? "An account with this email already exists. Please sign in instead."
+            : status === 500
+            ? "Backend database or server error. Please check server logs."
             : "Authentication failed. Please try again.";
-        throw new Error(resData.message || resData.detail || fallback);
+        const rawMsg = resData.message || resData.detail;
+        const finalMsg =
+          rawMsg && rawMsg !== "No message available" ? rawMsg : fallback;
+        throw new Error(finalMsg);
       }
 
       if (!isLogin) {
@@ -391,7 +359,7 @@ function App() {
         text:
           error instanceof TypeError || error.message === "Failed to fetch"
             ? (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
-                ? "Cannot reach backend (https://leavehub-backend.onrender.com). If the server was sleeping on Render Free Tier, please wait ~20-30 seconds and try again."
+                ? "Cannot reach backend. If the free server instance was sleeping on Render, please wait ~20-30 seconds and try again."
                 : "Cannot connect to backend. Ensure Spring Boot is running on port 8080.")
             : error.message,
       });
@@ -449,23 +417,16 @@ function App() {
 
   const strength = passwordStrength(form.password);
 
-  // Helper for user avatar initials
-  const getInitials = (name, email) => {
-    if (name) {
-      const parts = name.trim().split(" ");
-      if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-      return name.slice(0, 2).toUpperCase();
-    }
-    return email ? email.slice(0, 2).toUpperCase() : "U";
-  };
-
   // Get formatted today date
   const todayFormatted = useMemo(() => getFormattedToday(), []);
 
   // ---------- DASHBOARD LAYOUT ----------
   if (user) {
     const isAdmin = user.role === "ADMIN";
-    const initials = getInitials(user.name, user.email);
+    const isSuperAdmin = user?.email?.trim().toLowerCase() === "superadmin@gmail.com";
+    const displayName = isSuperAdmin ? "Super Admin" : (user?.name || "Employee");
+    const displayRole = isSuperAdmin ? "SUPER ADMIN" : user?.role;
+    const initials = isSuperAdmin ? "SA" : getInitials(displayName, user?.email);
 
     return (
       <div className="dashboard-app-container">
@@ -540,6 +501,26 @@ function App() {
                     <span className="nav-badge-pill">Admin</span>
                   </button>
 
+                  {/* SUPER ADMIN ONLY: Add Admin User Page */}
+                  {isSuperAdmin && (
+                    <button
+                      className={`sidebar-nav-item ${activeTab === "ADD_ADMIN" ? "active" : ""}`}
+                      onClick={() => {
+                        setActiveTab("ADD_ADMIN");
+                        setIsSidebarOpen(false);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                      </svg>
+                      <span>Add Admin User</span>
+                      <span className="nav-badge-pill" style={{ background: "#4f46e5", color: "#fff" }}>Super</span>
+                    </button>
+                  )}
+
                   <button
                     className={`sidebar-nav-item ${activeTab === "EMPLOYEE" ? "active" : ""}`}
                     onClick={() => {
@@ -572,6 +553,35 @@ function App() {
               )}
             </nav>
           </div>
+
+          {/* SUPER ADMIN EXCLUSIVE SIDEBAR SECTION */}
+          {user?.email?.trim().toLowerCase() === "superadmin@gmail.com" && (
+            <div className="sidebar-nav-section" style={{ borderTop: "1px solid #e2e8f0", paddingTop: "14px", marginTop: "14px" }}>
+              <p className="sidebar-section-title" style={{ color: "#4338ca", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>
+                <span>SUPER ADMIN</span>
+                <span style={{ fontSize: "0.65rem", background: "#eef2ff", color: "#4f46e5", padding: "1px 6px", borderRadius: "999px" }}>ONLY</span>
+              </p>
+              <nav className="sidebar-menu">
+                <button
+                  className="sidebar-nav-item"
+                  style={{ background: "#eef2ff", color: "#4338ca", fontWeight: "600", border: "1px solid #c7d2fe" }}
+                  onClick={() => {
+                    setShowAddAdminModal(true);
+                    setIsSidebarOpen(false);
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                  </svg>
+                  <span>+ Add Admin User</span>
+                  <span className="nav-badge-pill" style={{ background: "#4f46e5", color: "#fff" }}>Super</span>
+                </button>
+              </nav>
+            </div>
+          )}
 
           <div className="sidebar-nav-section quick-jump-section">
             <p className="sidebar-section-title">QUICK ACCESS</p>
@@ -642,11 +652,11 @@ function App() {
             >
               <div className="avatar-circle">{initials}</div>
               <div className="user-info-text">
-                <p className="user-name-label">{user.name || "Employee"}</p>
+                <p className="user-name-label">{displayName}</p>
                 <p className="user-email-label">{user.email}</p>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                  <span className={`role-pill ${user.role.toLowerCase()}`}>
-                    {user.role}
+                  <span className={`role-pill ${isSuperAdmin ? "super-admin" : user.role.toLowerCase()}`}>
+                    {displayRole}
                   </span>
                   <span className="profile-card-action-hint">View Profile &rarr;</span>
                 </div>
@@ -670,10 +680,16 @@ function App() {
           <header className="main-topbar">
             <div className="topbar-left">
               <h1 className="topbar-title">
-                {isAdmin && activeTab === "ADMIN" ? "Admin Management Portal" : "Employee Leave Dashboard"}
+                {isSuperAdmin && activeTab === "ADD_ADMIN"
+                  ? "Super Admin Portal — Add Admin User"
+                  : isAdmin && activeTab === "ADMIN"
+                  ? "Admin Management Portal"
+                  : "Employee Leave Dashboard"}
               </h1>
               <p className="topbar-subtitle">
-                {isAdmin && activeTab === "ADMIN"
+                {isSuperAdmin && activeTab === "ADD_ADMIN"
+                  ? "Create and manage system administrator accounts using email and password."
+                  : isAdmin && activeTab === "ADMIN"
                   ? "Review, approve, or reject organization leave applications in real time."
                   : "Submit new leave applications, track approval statuses, and manage your records."}
               </p>
@@ -703,6 +719,22 @@ function App() {
                     </svg>
                     <span>Admin View</span>
                   </button>
+
+                  {isSuperAdmin && (
+                    <button
+                      className={`switch-tab-btn ${activeTab === "ADD_ADMIN" ? "active" : ""}`}
+                      onClick={() => setActiveTab("ADD_ADMIN")}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                      </svg>
+                      <span>Add Admin User</span>
+                    </button>
+                  )}
+
                   <button
                     className={`switch-tab-btn ${activeTab === "EMPLOYEE" ? "active" : ""}`}
                     onClick={() => setActiveTab("EMPLOYEE")}
@@ -723,9 +755,9 @@ function App() {
               >
                 <div className="topbar-avatar-badge">{initials}</div>
                 <div className="topbar-profile-info">
-                  <span className="topbar-profile-name">{user.name || user.email}</span>
-                  <span className={`topbar-role-tag ${user.role?.toLowerCase()}`}>
-                    {user.role} Profile &rarr;
+                  <span className="topbar-profile-name">{displayName}</span>
+                  <span className={`topbar-role-tag ${isSuperAdmin ? "super-admin" : user.role?.toLowerCase()}`}>
+                    {displayRole} Profile &rarr;
                   </span>
                 </div>
               </button>
@@ -735,10 +767,18 @@ function App() {
           {/* Welcome Greeting Banner */}
           <section className="welcome-banner-card">
             <div className="welcome-banner-content">
-              <span className="welcome-tag-pill">PORTAL ACTIVE</span>
-              <h2>Welcome back, {user.name || user.email}!</h2>
+              <span className="welcome-tag-pill">
+                {isSuperAdmin && activeTab === "ADD_ADMIN"
+                  ? "SUPER ADMIN PORTAL"
+                  : isAdmin && activeTab === "ADMIN"
+                  ? "ADMIN PORTAL ACTIVE"
+                  : "PORTAL ACTIVE"}
+              </span>
+              <h2>Welcome back, {displayName}!</h2>
               <p>
-                {isAdmin && activeTab === "ADMIN"
+                {isSuperAdmin && activeTab === "ADD_ADMIN"
+                  ? "You have exclusive authority to create and manage system administrator accounts using email and password."
+                  : isAdmin && activeTab === "ADMIN"
                   ? "Here is your administrative command center for organizational attendance and approvals."
                   : "You can apply for casual, sick, or earned leaves below and monitor their statuses live."}
               </p>
@@ -754,7 +794,9 @@ function App() {
 
           {/* Tab Content */}
           <main className="dashboard-content-area">
-            {isAdmin && activeTab === "ADMIN" ? (
+            {isSuperAdmin && activeTab === "ADD_ADMIN" ? (
+              <SuperAdminManagement user={user} />
+            ) : isAdmin && activeTab === "ADMIN" ? (
               <AdminLeaveManagement />
             ) : (
               <>
@@ -776,6 +818,99 @@ function App() {
             onClose={() => setShowProfileModal(false)}
             onLogout={logout}
           />
+        )}
+
+        {/* Super Admin Quick Add Admin Modal (ONLY for superadmin@gmail.com) */}
+        {showAddAdminModal && user?.email?.trim().toLowerCase() === "superadmin@gmail.com" && (
+          <div className="react-popup-overlay">
+            <div className="react-popup-box" style={{ maxWidth: "440px", textAlign: "left", padding: "26px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+                <div>
+                  <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#4f46e5", background: "#eef2ff", padding: "3px 10px", borderRadius: "999px", border: "1px solid #c7d2fe" }}>
+                    👑 SUPER ADMIN ONLY
+                  </span>
+                  <h3 style={{ margin: "8px 0 4px 0", fontSize: "1.25rem", fontWeight: "700", color: "#0f172a" }}>
+                    Add Admin User
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b" }}>
+                    Create an Administrator using only Email and Password.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setShowAddAdminModal(false); setAdminModalError(""); setAdminModalSuccess(""); }}
+                  style={{ background: "transparent", border: "none", fontSize: "1.3rem", cursor: "pointer", color: "#94a3b8", lineHeight: 1 }}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {adminModalSuccess && (
+                <div style={{ padding: "10px 14px", background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "14px" }}>
+                  ✓ {adminModalSuccess}
+                </div>
+              )}
+
+              {adminModalError && (
+                <div style={{ padding: "10px 14px", background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca", borderRadius: "8px", fontSize: "0.85rem", marginBottom: "14px" }}>
+                  ⚠ {adminModalError}
+                </div>
+              )}
+
+              <form onSubmit={handleQuickAddAdmin}>
+                <div style={{ marginBottom: "14px" }}>
+                  <label htmlFor="quickAdminEmail" style={{ display: "block", fontSize: "0.82rem", fontWeight: "600", color: "#334155", marginBottom: "6px" }}>
+                    Admin Email ID *
+                  </label>
+                  <input
+                    id="quickAdminEmail"
+                    type="email"
+                    required
+                    placeholder="e.g. admin@settribe.com"
+                    value={adminModalEmail}
+                    onChange={(e) => setAdminModalEmail(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", fontSize: "0.9rem", boxSizing: "border-box", outline: "none" }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: "18px" }}>
+                  <label htmlFor="quickAdminPassword" style={{ display: "block", fontSize: "0.82rem", fontWeight: "600", color: "#334155", marginBottom: "6px" }}>
+                    Password *
+                  </label>
+                  <input
+                    id="quickAdminPassword"
+                    type="password"
+                    required
+                    placeholder="e.g. Password@123"
+                    value={adminModalPassword}
+                    onChange={(e) => setAdminModalPassword(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "1.5px solid #cbd5e1", fontSize: "0.9rem", boxSizing: "border-box", outline: "none" }}
+                  />
+                  <span style={{ fontSize: "0.74rem", color: "#64748b", marginTop: "4px", display: "block" }}>
+                    Must be at least 6 characters with uppercase, lowercase, and a number.
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                  <button
+                    type="button"
+                    onClick={() => { setShowAddAdminModal(false); setAdminModalError(""); setAdminModalSuccess(""); }}
+                    style={{ padding: "9px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#fff", color: "#475569", fontWeight: "600", cursor: "pointer" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={adminModalLoading}
+                    style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "#4f46e5", color: "#fff", fontWeight: "600", cursor: "pointer" }}
+                  >
+                    {adminModalLoading ? "Creating..." : "Create Admin Account"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </div>
     );

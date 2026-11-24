@@ -5,8 +5,12 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
   if (!user) return null;
 
   const isAdmin = user.role === "ADMIN";
-  const initials = (user.name || user.email || "U")
-    .split(" ")
+  const isSuperAdmin = user.email?.trim().toLowerCase() === "superadmin@gmail.com";
+  const displayName = isSuperAdmin ? "Super Admin" : (user.name || "Employee");
+  const initials = isSuperAdmin ? "SA" : (displayName || user.email || "U")
+    .replace(/[()]/g, "")
+    .split(/\s+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
@@ -39,9 +43,9 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
           <div className="profile-avatar-circle">{initials}</div>
           <div className="profile-hero-info">
             <div className="profile-hero-name-row">
-              <h3 className="profile-name">{user.name || "Employee"}</h3>
-              <span className={`profile-role-badge ${user.role?.toLowerCase()}`}>
-                {isAdmin ? "Administrator" : "Employee"}
+              <h3 className="profile-name">{displayName}</h3>
+              <span className={`profile-role-badge ${isSuperAdmin ? "super" : user.role?.toLowerCase()}`}>
+                {isSuperAdmin ? "Super Administrator" : isAdmin ? "Administrator" : "Employee"}
               </span>
             </div>
             <p className="profile-email">{user.email}</p>
@@ -68,7 +72,7 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
             </div>
             <div className="detail-text-wrap">
               <span className="detail-label">Full Name</span>
-              <span className="detail-value">{user.name || "Not provided"}</span>
+              <span className="detail-value">{displayName}</span>
             </div>
           </div>
 
@@ -95,7 +99,11 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
             <div className="detail-text-wrap">
               <span className="detail-label">System Role</span>
               <span className="detail-value">
-                {isAdmin ? "System Administrator (ADMIN)" : "Staff Member (EMPLOYEE)"}
+                {isSuperAdmin
+                  ? "Super Administrator (Highest Privilege)"
+                  : isAdmin
+                  ? "System Administrator (ADMIN)"
+                  : "Staff Member (EMPLOYEE)"}
               </span>
             </div>
           </div>
@@ -138,6 +146,12 @@ export default function UserProfileModal({ user, onClose, onLogout }) {
             <span>Assigned Permissions & Capabilities</span>
           </div>
           <ul className="permissions-list">
+            {isSuperAdmin && (
+              <li>
+                <span className="check-bullet">&#10003;</span>
+                <strong>Super Admin Privilege:</strong> Provision and manage Administrator accounts using Email ID and Password
+              </li>
+            )}
             {isAdmin ? (
               <>
                 <li>

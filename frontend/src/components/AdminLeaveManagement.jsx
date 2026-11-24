@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import "./AdminLeaveManagement.css";
 
-import { ADMIN_API_URL, api } from "../apiConfig";
+import { ADMIN_API_URL, ADMIN_USERS_API_URL, api } from "../apiConfig";
 import { calculateLeaveDays } from "../utils/dateUtils";
 
 function AdminLeaveManagement() {
@@ -25,6 +25,87 @@ function AdminLeaveManagement() {
       return null;
     }
   }, []);
+
+  const isSuperAdmin = useMemo(() => {
+    return currentUser?.email?.trim().toLowerCase() === "superadmin@gmail.com";
+  }, [currentUser]);
+
+  // Super Admin "Add Admin User" State
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [loadingAdmins, setLoadingAdmins] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminError, setNewAdminError] = useState("");
+  const [newAdminSuccess, setNewAdminSuccess] = useState("");
+  const [createAdminLoading, setCreateAdminLoading] = useState(false);
+
+  const fetchAdmins = useCallback(async () => {
+    if (!isSuperAdmin) return;
+    try {
+      setLoadingAdmins(true);
+      const res = await api.get(`${ADMIN_USERS_API_URL}/admins`);
+      setAdminUsers(res.data || []);
+    } catch (err) {
+      console.error("Failed to load admin users:", err);
+    } finally {
+      setLoadingAdmins(false);
+    }
+  }, [isSuperAdmin]);
+
+  async function handleCreateAdmin(e) {
+    e.preventDefault();
+    setNewAdminError("");
+    setNewAdminSuccess("");
+
+    const email = newAdminEmail.trim().toLowerCase();
+    const password = newAdminPassword;
+
+    if (!email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/.test(email)) {
+      setNewAdminError("Please enter a valid admin email address.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setNewAdminError("Password must be at least 6 characters.");
+      return;
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+      setNewAdminError("Password must include at least one uppercase letter, one lowercase letter, and one number.");
+      return;
+    }
+
+    setCreateAdminLoading(true);
+    try {
+      const res = await api.post(`${ADMIN_USERS_API_URL}/create-admin`, {
+        email,
+        password,
+      });
+      setNewAdminSuccess(res.data?.message || `Admin account for ${email} created successfully!`);
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+      fetchAdmins();
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || "Failed to create admin user.";
+      setNewAdminError(msg);
+    } finally {
+      setCreateAdminLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    let active = true;
+    if (isSuperAdmin) {
+      api.get(`${ADMIN_USERS_API_URL}/admins`)
+        .then((res) => {
+          if (active) setAdminUsers(res.data || []);
+        })
+        .catch((err) => {
+          console.error("Failed to load admin users:", err);
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [isSuperAdmin]);
 
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -252,6 +333,112 @@ function AdminLeaveManagement() {
           </div>
         </div>
       </div>
+
+      {/* SUPER ADMIN ONLY SECTION: ADD ADMIN USER */}
+      {isSuperAdmin && (
+        <div id="superadmin-add-admin-section" className="superadmin-controls-card">
+          <div className="superadmin-header">
+            <div className="superadmin-title-wrap">
+              <span className="superadmin-badge">👑 SUPER ADMIN DASHBOARD ONLY</span>
+              <h2 className="superadmin-title">Add Administrator User</h2>
+              <p className="superadmin-desc">
+                Only you as Super Admin have access to this section. Create official administrator accounts with full review and approval privileges.
+              </p>
+            </div>
+          </div>
+
+          {newAdminSuccess && (
+            <div className="superadmin-alert success">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>{newAdminSuccess}</span>
+            </div>
+          )}
+
+          {newAdminError && (
+            <div className="superadmin-alert error">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>{newAdminError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleCreateAdmin} className="superadmin-form">
+            <div className="superadmin-input-group">
+              <label htmlFor="adminEmail">Admin Email ID *</label>
+              <input
+                id="adminEmail"
+                type="email"
+                placeholder="e.g. ramesh@settribe.com"
+                value={newAdminEmail}
+                onChange={(e) => setNewAdminEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="superadmin-input-group">
+              <label htmlFor="adminPassword">Password *</label>
+              <input
+                id="adminPassword"
+                type="password"
+                placeholder="e.g. Password@123"
+                value={newAdminPassword}
+                onChange={(e) => setNewAdminPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="superadmin-action-wrap">
+              <button
+                type="submit"
+                className="superadmin-submit-btn"
+                disabled={createAdminLoading}
+              >
+                {createAdminLoading ? (
+                  <>
+                    <span className="spinner-border-sm"></span> Creating...
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Admin User
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Current Administrators Overview */}
+          <div className="superadmin-admins-list-wrap">
+            <h3 className="superadmin-subhead">Registered Administrators ({adminUsers.length})</h3>
+            {loadingAdmins ? (
+              <p className="superadmin-loading-text">Loading administrators...</p>
+            ) : (
+              <div className="superadmin-admins-grid">
+                {adminUsers.map((adm) => (
+                  <div key={adm.id} className="superadmin-admin-chip">
+                    <div className="admin-chip-avatar">
+                      {getInitials(adm.name)}
+                    </div>
+                    <div className="admin-chip-info">
+                      <span className="admin-chip-name">{adm.name}</span>
+                      <span className="admin-chip-email">{adm.email}</span>
+                    </div>
+                    <span className="admin-chip-badge">ADMIN</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 2. Admin Header & Refresh */}
       <div className="admin-section-header">

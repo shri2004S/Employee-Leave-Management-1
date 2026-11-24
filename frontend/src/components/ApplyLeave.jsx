@@ -143,7 +143,7 @@ function ApplyLeave({ onLeaveSubmitted }) {
         resMsg ||
           (error.message === "Network Error" || !error.response
             ? (typeof window !== "undefined" && window.location.hostname.includes("onrender.com")
-                ? "Cannot connect to leave API at https://leavehub-backend.onrender.com. Please try again in a moment."
+                ? "Cannot connect to backend. If the free instance was sleeping on Render, please wait a moment and try again."
                 : "Cannot connect to the leave API. Check that Spring Boot is running on port 8080.")
             : error.message)
       );
